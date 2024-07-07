@@ -28,10 +28,10 @@ def create_tables():
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             username TEXT NOT NULL UNIQUE,
             email TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL
+            password_hash TEXT NOT NULL
         );
     """)
     
@@ -74,6 +74,7 @@ def verify_sign_up_data(data):
     cur.execute("SELECT * FROM users WHERE username = ?", (username,))
     result = cur.fetchone()
     if result or not username:
+        conn.close()
         return "You must enter a unique username."
     
     # Verify email
@@ -81,8 +82,10 @@ def verify_sign_up_data(data):
     cur.execute("SELECT * FROM users WHERE email = ?", (email,))
     result = cur.fetchone()
     if result or not email or not EMAIL_PATTERN.match(email):
+        conn.close()
         return "You must enter a unique email. (example@mail.com)"
     
+    conn.close()
     # Verify password
     password = data["password"]
     if not PASSWORD_PATTERN.match(password) or not password:
@@ -92,3 +95,20 @@ def verify_sign_up_data(data):
     confirm_password = data["confirm_password"]
     if not confirm_password == password or not confirm_password:
         return "Passwords must match."
+    
+    
+def insert_user_db(user_data, pw_hash):
+    """Insert the registering user into the database"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""""INSERT INTO users 
+                (username, email, password_hash)
+                VALUES (?, ?, ?)""", 
+                (user_data["username"], user_data["email"], pw_hash))
+    conn.commit()
+    # Get rows inserted
+    rows_inserted = cur.rowcount
+    if rows_inserted < 1:
+        return False
+    conn.close()
+    return True
