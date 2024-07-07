@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, session
 from flask_session import Session
-from helpers import  create_tables
+from helpers import  create_tables, verify_sign_up_username
 
 # Configure application
 app = Flask(__name__)
@@ -17,9 +17,12 @@ Session(app)
 def signup():
     """Register a new user"""
     if request.method == "POST":
+        # Form submission
         error = None
-        if not request.form.get("username"):
-            error = "Username is required."
+        # Set error message if cannot verify username
+        if not verify_sign_up_username(request.form.get("username")):
+            error = "You must enter a unique username."
+            
         elif not request.form.get("email"):
             error = "Email is required."
         elif not request.form.get("password"):

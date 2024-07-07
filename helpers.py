@@ -48,3 +48,14 @@ def create_tables():
     
     conn.commit()
     conn.close()
+    
+    
+def verify_sign_up_username(username):
+    """Verify the sign up form username is present and unique"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE username = ?", (username,))
+    result = cur.fetchone()
+    conn.close()
+    if result or not username:
+        return False
