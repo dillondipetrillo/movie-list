@@ -1,6 +1,8 @@
-import sqlite3
+import re, sqlite3
 
 DATABASE = "movielist.db"
+# Regex pattern for simple email matching
+EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9]+\.[a-zA-Z0-9-.]+$")
 
 def get_db_connection():
     """
@@ -59,3 +61,16 @@ def verify_sign_up_username(username):
     conn.close()
     if result or not username:
         return False
+    return True
+
+    
+def verify_sign_up_email(email):
+    """Verify the sign up form email is present and unique and a valid email address"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE email = ?", (email,))
+    result = cur.fetchone()
+    conn.close()
+    if result or not email or not EMAIL_PATTERN.match(email):
+        return False
+    return True
