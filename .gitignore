@@ -140,3 +140,6 @@ $RECYCLE.BIN/
 *.log
 *.sql
 *.sqlite
+
+# Ignore the database file
+*.db

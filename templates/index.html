@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block main %}
+    <h1>Home page</h1>
+    {% if username %}
+        <p>Hello, {{ username }}</p>
+    {% endif %}
+{% endblock %}
