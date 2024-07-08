@@ -8,5 +8,7 @@
     <h1>Home page</h1>
     {% if username %}
         <p>Hello, {{ username }}</p>
+    {% elif not username %}
+        <p>Hello There</p>
     {% endif %}
 {% endblock %}
