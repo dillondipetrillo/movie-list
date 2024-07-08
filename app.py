@@ -22,7 +22,7 @@ def index():
     return render_template("index.html", username=username[0])
 
 
-@app.route("/sign-up", methods=["GET", "POST"])
+@app.route("/signup", methods=["GET", "POST"])
 def signup():
     """Register a new user"""
     session.clear()
@@ -39,7 +39,7 @@ def signup():
         # Set error message if cannot verify sign up form info
         error = verify_sign_up_data(sign_up_data)
         if error:
-            return render_template("sign-up.html", error=error)
+            return render_template("signup.html", error=error)
         
         pw_hash = generate_password_hash(
             sign_up_data["password"], 
@@ -48,12 +48,12 @@ def signup():
         # Insert the registered user into the database
         if not insert_user_db(sign_up_data, pw_hash):
             error = "Error adding user. Please try again."
-            return render_template("sign-up.html", error=error)
+            return render_template("signup.html", error=error)
         id = get_user_id(sign_up_data["username"])
         session["user_id"] = id[0]
         return redirect('/')
     else:
-        return render_template("sign-up.html")
+        return render_template("signup.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -78,3 +78,13 @@ def login():
     # User reached via GET (clicking a link or via redirect)
     else:
         return render_template("login.html")
+    
+    
+@app.route("/logout")
+def logout():
+    """Logs the user out of their account"""
+    # Forget any user id
+    session.clear()
+    
+    # Redirect user to login
+    return redirect('/')
