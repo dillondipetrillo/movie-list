@@ -1,6 +1,6 @@
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
-from helpers import create_tables, insert_user_db, verify_sign_up_data
+from helpers import create_tables, get_user_id, get_username, insert_user_db, login_required, verify_sign_up_data
 from werkzeug.security import generate_password_hash
 
 # Configure application
@@ -15,9 +15,11 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 @app.route('/')
+@login_required
 def index():
     """Homepage for signed in user"""
-    return render_template("index.html")
+    username = get_username(session["user_id"])
+    return render_template("index.html", username=username[0])
 
 @app.route("/sign-up", methods=["GET", "POST"])
 def signup():
@@ -38,11 +40,16 @@ def signup():
         if error:
             return render_template("sign-up.html", error=error)
         
-        pw_hash = generate_password_hash(sign_up_data["password"], method="pbkdf2", salt_length=16)
+        pw_hash = generate_password_hash(
+            sign_up_data["password"], 
+            method="pbkdf2", 
+            salt_length=16)
         # Insert the registered user into the database
         if not insert_user_db(sign_up_data, pw_hash):
             error = "Error adding user. Please try again."
             return render_template("sign-up.html", error=error)
+        id = get_user_id(sign_up_data["username"])
+        session["user_id"] = id[0]
         return redirect('/')
     else:
         return render_template("sign-up.html")

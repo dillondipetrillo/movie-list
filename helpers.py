@@ -1,4 +1,6 @@
 import re, sqlite3
+from flask import redirect, session
+from functools import wraps
 
 DATABASE = "movielist.db"
 # Regex pattern for simple email matching
@@ -101,14 +103,45 @@ def insert_user_db(user_data, pw_hash):
     """Insert the registering user into the database"""
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("""""INSERT INTO users 
+    cur.execute("""INSERT INTO users 
                 (username, email, password_hash)
                 VALUES (?, ?, ?)""", 
                 (user_data["username"], user_data["email"], pw_hash))
-    conn.commit()
     # Get rows inserted
     rows_inserted = cur.rowcount
     if rows_inserted < 1:
+        conn.close()
         return False
+    conn.commit()
     conn.close()
     return True
+
+
+def get_user_id(username):
+    """Get the id of the username registered"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM users WHERE username = ?", (username,))
+    id = cur.fetchone()
+    conn.close()
+    return id
+
+
+def get_username(user_id):
+    """Get the current user from the session id"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT username FROM users WHERE id = ?", (user_id,))
+    user = cur.fetchone()
+    conn.close()
+    return user
+
+
+def login_required(f):
+    """Decorate routes to require login."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("user_id") is None:
+            return redirect("/login")
+        return f(*args, **kwargs)
+    return decorated_function
