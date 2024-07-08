@@ -1,6 +1,7 @@
 import re, sqlite3
 from flask import redirect, session
 from functools import wraps
+from werkzeug.security import check_password_hash
 
 DATABASE = "movielist.db"
 # Regex pattern for simple email matching
@@ -97,6 +98,30 @@ def verify_sign_up_data(data):
     confirm_password = data["confirm_password"]
     if not confirm_password == password or not confirm_password:
         return "Passwords must match."
+   
+    
+def verify_login_data(data):
+    """
+        Verify the login username is present in database.
+        Verify the login password is present and matches user
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # Verify username
+    email = data["email"]
+    cur.execute("SELECT * FROM users WHERE email = ?", (email,))
+    user = cur.fetchone()
+    if not user:
+        conn.close()
+        return "Email not found."
+    
+    conn.close()
+    # Verify password matches
+    password = data["password"]
+    if not check_password_hash(user[3], password):
+        return "Incorrect password."
+    session["user_id"] = user[0]
     
     
 def insert_user_db(user_data, pw_hash):
