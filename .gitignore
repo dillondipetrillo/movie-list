@@ -48,6 +48,9 @@ instance/
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Ignore Flask session directory
+flask_session/
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
