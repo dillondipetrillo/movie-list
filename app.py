@@ -1,6 +1,6 @@
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
-from helpers import create_tables, get_user_id, get_username, insert_user_db, login_required, verify_sign_up_data, verify_login_data
+from helpers import create_tables, get_user_id, insert_user_db, login_required, verify_sign_up_data, verify_login_data, get_user, search_query
 from werkzeug.security import generate_password_hash
 
 # Configure application
@@ -18,8 +18,8 @@ Session(app)
 @login_required
 def index():
     """Homepage for signed in user"""
-    username = get_username(session["user_id"])
-    return render_template("index.html", username=username[0])
+    user = get_user(session["user_id"])
+    return render_template("index.html", user=user)
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -88,3 +88,11 @@ def logout():
     
     # Redirect user to login
     return redirect('/')
+
+
+@app.route("/search", methods=["GET"])
+def search():
+    """Calls the api to get movie search results"""
+    query = request.args.get("query")
+    if query:
+        return search_query(query)
