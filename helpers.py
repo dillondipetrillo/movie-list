@@ -1,9 +1,15 @@
-import re, sqlite3
-from flask import redirect, session
+import os, re, requests, sqlite3
+from dotenv import load_dotenv
+from flask import jsonify, redirect, session
 from functools import wraps
 from werkzeug.security import check_password_hash
 
+# Load env variables
+load_dotenv()
+
 DATABASE = "movielist.db"
+# Get API key
+OMDB_API_KEY = os.getenv("OMDB_API_KEY")
 # Regex pattern for simple email matching
 EMAIL_PATTERN = re.compile(
     r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9]+\.[a-zA-Z0-9-.]+$"
@@ -152,14 +158,19 @@ def get_user_id(username):
     return id
 
 
-def get_username(user_id):
+def get_user(user_id):
     """Get the current user from the session id"""
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT username FROM users WHERE id = ?", (user_id,))
+    cur.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     user = cur.fetchone()
+    user_dict = {
+        "id": user[0],
+        "username": user[1],
+        "email": user[2],
+    }
     conn.close()
-    return user
+    return user_dict
 
 
 def login_required(f):
@@ -170,3 +181,9 @@ def login_required(f):
             return redirect("/login")
         return f(*args, **kwargs)
     return decorated_function
+
+
+def search_query(query):
+    """Makes call to api to get list of movies"""
+    response = requests.get(f"https://www.omdbapi.com/?apikey={OMDB_API_KEY}&type=movie&s={query}")
+    return jsonify(response.json())
