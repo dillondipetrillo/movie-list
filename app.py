@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from helpers import create_tables, get_user_id, insert_user_db, login_required, verify_sign_up_data, verify_login_data, get_user, search_query
 from werkzeug.security import generate_password_hash
@@ -15,16 +15,19 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 @app.route('/')
-@login_required
 def index():
     """Homepage for signed in user"""
-    user = get_user(session["user_id"])
+    user = get_user(session.get("user_id", None))
     return render_template("index.html", user=user)
 
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     """Register a new user"""
+    # Redirect to home if already logged in
+    if session.get("user_id"):
+        return redirect("/")
+    
     session.clear()
     
     if request.method == "POST":
@@ -59,6 +62,10 @@ def signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Route for login page"""
+    # Redirect to home if already logged in
+    if session.get("user_id"):
+        return redirect("/")
+    
     # Forget any user_id
     session.clear()
     
@@ -90,14 +97,19 @@ def logout():
     return redirect('/')
 
 
-@app.route("/search", methods=["GET", "POST"])
-@login_required
-def search():
+@app.route("/results")
+def results():
     """Calls the api to get movie search results"""
-    if request.method == "POST":
-        query = request.form.get("q")
-        return render_template("search.html", search=query)
-    
     query = request.args.get("q")
     if query:
         return search_query(query)
+    
+    
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    """Search results page"""
+    if request.method == "GET":
+        query = request.args.get("q")
+    elif request.method == "POST":
+        query = request.form.get("q")
+    return render_template("search.html", search=query)

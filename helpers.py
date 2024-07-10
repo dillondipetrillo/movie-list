@@ -159,7 +159,8 @@ def get_user_id(username):
 
 
 def get_user(user_id):
-    """Get the current user from the session id"""
+    """Get the current user from the session id if user is present"""
+    if not user_id: return
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM users WHERE id = ?", (user_id,))
