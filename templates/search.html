@@ -1,22 +1,16 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Home
+    Search
 {% endblock %}
 
 {% block main %}
-    <h1>Home page</h1>
-    {% if user.username %}
-        <p>Hello, {{ user.username }}</p>
-    {% elif not user.username %}
-        <p>Hello There</p>
-    {% endif %}
-
     <form action="/search" method="post">
-        <input autocomplete="off" type="text" name="q" placeholder="Start typing..." id="q" >
+        <input autocomplete="off" type="text" name="q" placeholder="Start typing..." id="q" value="{{ search if search else '' }}" >
         <button type="submit">Search</button>
     </form>
 {% endblock %}
+
 {% block body_scripts %}
     <script src="../static/js/search.js"></script>
 {% endblock %}

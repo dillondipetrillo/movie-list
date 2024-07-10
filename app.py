@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, url_for
 from flask_session import Session
 from helpers import create_tables, get_user_id, insert_user_db, login_required, verify_sign_up_data, verify_login_data, get_user, search_query
 from werkzeug.security import generate_password_hash
@@ -90,9 +90,14 @@ def logout():
     return redirect('/')
 
 
-@app.route("/search", methods=["GET"])
+@app.route("/search", methods=["GET", "POST"])
+@login_required
 def search():
     """Calls the api to get movie search results"""
-    query = request.args.get("query")
+    if request.method == "POST":
+        query = request.form.get("q")
+        return render_template("search.html", search=query)
+    
+    query = request.args.get("q")
     if query:
         return search_query(query)

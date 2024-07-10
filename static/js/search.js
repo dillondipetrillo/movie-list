@@ -1,21 +1,11 @@
-const searchbar = document.getElementById("search");
+document.addEventListener("DOMContentLoaded", function () {
+    const searchbar = document.getElementById("q");
 
-let timeout = null;
-
-searchbar.addEventListener("input", () => {
-    if (searchbar.value.length < 2) {
-        clearTimeout(timeout);
-        return;
-    }
-    clearTimeout(timeout);
-    let query = searchbar.value;
-
-    timeout = setTimeout(() => {
-        fetch(`/search?query=${encodeURIComponent(query)}`)
+    const fetchSearchResult = (query) => {
+        fetch(`/search?q=${encodeURIComponent(query)}`)
         .then(response => {
             if (response.ok)
                 return response.json();
-            throw new Error("Reponse status: " + response.status);
         })
         .then(data => {
             let result;
@@ -31,5 +21,23 @@ searchbar.addEventListener("input", () => {
         .catch(error => {
             console.log(error);
         })
-    }, 1500);
+    }
+
+    let timeout = null;
+
+    searchbar.addEventListener("input", () => {
+        if (!searchbar.value) {
+            clearTimeout(timeout);
+            return;
+        }
+        clearTimeout(timeout);
+        let query = searchbar.value;
+
+        timeout = setTimeout(() => {
+            fetchSearchResult(query);
+        }, 1250);
+    })
+
+    if (searchbar.value)
+        fetchSearchResult(searchbar.value);
 })
