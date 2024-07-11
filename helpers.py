@@ -128,6 +128,7 @@ def verify_login_data(data):
     if not check_password_hash(user[3], password):
         return "Incorrect password."
     session["user_id"] = user[0]
+    session["username"] = user[1]
     
     
 def insert_user_db(user_data, pw_hash):

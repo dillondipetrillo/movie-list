@@ -54,6 +54,7 @@ def signup():
             return render_template("signup.html", error=error)
         id = get_user_id(sign_up_data["username"])
         session["user_id"] = id[0]
+        session["username"] = sign_up_data["username"]
         return redirect('/')
     else:
         return render_template("signup.html")
