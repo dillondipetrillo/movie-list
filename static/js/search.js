@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const searchbar = document.getElementById("q");
 
     const fetchSearchResult = (query) => {
-        fetch(`/search?q=${encodeURIComponent(query)}`)
+        fetch(`/results?q=${encodeURIComponent(query)}`)
         .then(response => {
             if (response.ok)
                 return response.json();

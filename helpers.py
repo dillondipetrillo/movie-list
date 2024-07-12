@@ -128,6 +128,7 @@ def verify_login_data(data):
     if not check_password_hash(user[3], password):
         return "Incorrect password."
     session["user_id"] = user[0]
+    session["username"] = user[1]
     
     
 def insert_user_db(user_data, pw_hash):
@@ -159,7 +160,8 @@ def get_user_id(username):
 
 
 def get_user(user_id):
-    """Get the current user from the session id"""
+    """Get the current user from the session id if user is present"""
+    if not user_id: return
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM users WHERE id = ?", (user_id,))
