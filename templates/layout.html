@@ -93,6 +93,9 @@
             {% block main %}{% endblock %}
         </main>
         {% block body_scripts %}
+            {% if not is_login %}
+                <script src="../static/js/search.js"></script>
+            {% endif %}
         {% endblock %}
     </body>
 </html>
