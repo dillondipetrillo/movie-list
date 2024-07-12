@@ -51,13 +51,13 @@ def signup():
         # Insert the registered user into the database
         if not insert_user_db(sign_up_data, pw_hash):
             error = "Error adding user. Please try again."
-            return render_template("signup.html", error=error)
+            return render_template("signup.html", error=error, is_login=True)
         id = get_user_id(sign_up_data["username"])
         session["user_id"] = id[0]
         session["username"] = sign_up_data["username"]
         return redirect('/')
     else:
-        return render_template("signup.html")
+        return render_template("signup.html", is_login=True)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -80,12 +80,12 @@ def login():
         # Set error message if data cannot validate
         error = verify_login_data(sign_in_data)
         if error:
-            return render_template("login.html", error=error)
+            return render_template("login.html", error=error, is_login=True)
         return redirect('/')
     
     # User reached via GET (clicking a link or via redirect)
     else:
-        return render_template("login.html")
+        return render_template("login.html", is_login=True)
     
     
 @app.route("/logout")
@@ -113,4 +113,4 @@ def search():
         query = request.args.get("q")
     elif request.method == "POST":
         query = request.form.get("q")
-    return render_template("search.html", search=query)
+    return render_template("search.html", q=query)

@@ -5,10 +5,7 @@
 {% endblock %}
 
 {% block main %}
-    <form action="/search" method="post">
-        <input autocomplete="off" type="text" name="q" placeholder="Start typing..." id="q" value="{{ search if search else '' }}" >
-        <button type="submit">Search</button>
-    </form>
+    <h1>Search</h1>
 {% endblock %}
 
 {% block body_scripts %}
