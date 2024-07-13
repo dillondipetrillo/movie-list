@@ -77,20 +77,18 @@
         {% endblock %}
         <main>
             {% if not no_search %}
-                <div class="form-container">
+                <div class="form-container mb-3">
                     <div class="container-fluid app-max-width">
                         <form action="/search" method="get">
-                            <div class="input-group mb-3">
+                            <div class="input-group">
                                 <input type="search" name="q" id="q" autocomplete="off" class="form-control rounded-end" placeholder="Start typing..." aria-label="Start typing..." value="{{ q }}">
                                 <div class="input-group-append ms-2">
                                     <button class="btn btn-primary" type="submit">Search</button>
                                 </div>
                             </div>
                         </form>
+                        <div id="search-form-result" class="container-fluid app-max-width rounded"></div>
                     </div>
-                </div>
-                <div>
-
                 </div>
             {% endif %}
             {% block main %}{% endblock %}
