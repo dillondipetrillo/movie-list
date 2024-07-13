@@ -80,19 +80,25 @@ def verify_sign_up_data(data):
     
     # Verify username
     username = data["username"]
-    cur.execute("SELECT * FROM users WHERE username = ?", (username,))
-    result = cur.fetchone()
-    if result or not username:
+    if not username:
         conn.close()
         return "You must enter a unique username."
+    cur.execute("SELECT * FROM users WHERE username = ?", (username,))
+    result = cur.fetchone()
+    if result:
+        conn.close()
+        return "Username already in use."
     
     # Verify email
     email = data["email"]
-    cur.execute("SELECT * FROM users WHERE email = ?", (email,))
-    result = cur.fetchone()
-    if result or not email or not EMAIL_PATTERN.match(email):
+    if not email or not EMAIL_PATTERN.match(email):
         conn.close()
         return "You must enter a unique email. (example@mail.com)"
+    cur.execute("SELECT * FROM users WHERE email = ?", (email,))
+    result = cur.fetchone()
+    if result:
+        conn.close()
+        return "Email already in use."
     
     conn.close()
     # Verify password

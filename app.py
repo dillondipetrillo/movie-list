@@ -42,7 +42,7 @@ def signup():
         # Set error message if cannot verify sign up form info
         error = verify_sign_up_data(sign_up_data)
         if error:
-            return render_template("signup.html", error=error)
+            return render_template("signup.html", error=error, no_search=True)
         
         pw_hash = generate_password_hash(
             sign_up_data["password"], 
@@ -51,13 +51,13 @@ def signup():
         # Insert the registered user into the database
         if not insert_user_db(sign_up_data, pw_hash):
             error = "Error adding user. Please try again."
-            return render_template("signup.html", error=error, is_login=True)
+            return render_template("signup.html", error=error, no_search=True)
         id = get_user_id(sign_up_data["username"])
         session["user_id"] = id[0]
         session["username"] = sign_up_data["username"]
         return redirect('/')
     else:
-        return render_template("signup.html", is_login=True)
+        return render_template("signup.html", no_search=True)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -80,12 +80,12 @@ def login():
         # Set error message if data cannot validate
         error = verify_login_data(sign_in_data)
         if error:
-            return render_template("login.html", error=error, is_login=True)
+            return render_template("login.html", error=error, no_search=True)
         return redirect('/')
     
     # User reached via GET (clicking a link or via redirect)
     else:
-        return render_template("login.html", is_login=True)
+        return render_template("login.html", no_search=True)
     
     
 @app.route("/logout")
@@ -110,7 +110,7 @@ def results():
 def search():
     """Search results page"""
     if request.method == "GET":
-        query = request.args.get("q")
+        query = request.args.get("q", "")
     elif request.method == "POST":
-        query = request.form.get("q")
+        query = request.form.get("q", "")
     return render_template("search.html", q=query)

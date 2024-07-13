@@ -76,18 +76,21 @@
         </nav>
         {% endblock %}
         <main>
-            {% if not is_login %}
+            {% if not no_search %}
                 <div class="form-container">
                     <div class="container-fluid app-max-width">
                         <form action="/search" method="get">
                             <div class="input-group mb-3">
-                                <input type="text" name="q" id="q" autocomplete="off" class="form-control rounded-end" placeholder="Start typing..." aria-label="Start typing..." value="{{ q }}">
+                                <input type="search" name="q" id="q" autocomplete="off" class="form-control rounded-end" placeholder="Start typing..." aria-label="Start typing..." value="{{ q }}">
                                 <div class="input-group-append ms-2">
                                     <button class="btn btn-primary" type="submit">Search</button>
                                 </div>
                             </div>
                         </form>
                     </div>
+                </div>
+                <div>
+
                 </div>
             {% endif %}
             {% block main %}{% endblock %}
