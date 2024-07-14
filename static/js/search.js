@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     searchbar.addEventListener("input", () => {
         if (!searchbar.value) {
+            clearSearchResults();
             clearTimeout(timeout);
             return;
         }
@@ -68,8 +69,31 @@ document.addEventListener("DOMContentLoaded", function () {
             p.textContent = results.Error;
             p.classList.add("mt-3");
             searchResultsContainer.append(p);
-        } else
-            console.log("SUCCESS", results);
+        } else {
+            for (const movie of results) {
+                console.log(movie);
+                const movieDiv = document.createElement("div");
+                const leftContainer = document.createElement("div");
+                const rightContainer = document.createElement("div");
+                const moviePoster = document.createElement("img");
+                const movieTitle = document.createElement('p');
+                const movieYear = document.createElement('p');
+
+                movieDiv.classList.add("d-flex", "justify-content-start", "py-3");
+                rightContainer.classList.add("d-flex", "flex-column");
+                leftContainer.classList.add("mw-25")
+                moviePoster.classList.add("float-left", "rounded", "img-fluid", "w-100");
+
+                moviePoster.src = movie.Poster;
+                movieTitle.textContent = movie.Title;
+                movieYear.textContent = movie.Year;
+
+                leftContainer.append(moviePoster);
+                rightContainer.append(movieTitle, movieYear);
+                movieDiv.append(leftContainer, rightContainer);
+                searchResultsContainer.append(movieDiv);
+            }
+        }
     }
 
     const clearSearchResults = () => {
