@@ -6,10 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Don't show results if search bar isn't focused
         if (document.activeElement !== searchbar) return;
         fetch(`/results?q=${encodeURIComponent(query)}`)
-        .then(response => {
-            if (response.ok)
-                return response.json();
-        })
+        .then(response => { if (response.ok) return response.json(); })
         .then(data => {
             let result;
             if (data.Search) {

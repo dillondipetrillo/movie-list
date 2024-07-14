@@ -194,4 +194,5 @@ def login_required(f):
 def search_query(query):
     """Makes call to api to get list of movies"""
     response = requests.get(f"https://www.omdbapi.com/?apikey={OMDB_API_KEY}&type=movie&s={query}")
+    # response = requests.get(f"https://www.omdbapi.com/?apikey={OMDB_API_KEY}&type=movie&t={query}")
     return jsonify(response.json())

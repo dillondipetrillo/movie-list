@@ -98,7 +98,7 @@ def logout():
     return redirect('/')
 
 
-@app.route("/results")
+@app.route("/results", methods=["GET", "POST"])
 def results():
     """Calls the api to get movie search results"""
     query = request.args.get("q")
