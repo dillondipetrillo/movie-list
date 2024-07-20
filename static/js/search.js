@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const searchbar = document.getElementById("q");
     const searchResultsContainer = document.getElementById("search-form-result");
+    const movieIDs = [];
 
     // Fetch search results by similar movie title
     const fetchSearchResult = (query) => {
@@ -27,15 +28,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Fetch a single movies info
-    const fetchMovieInfo = (query) => {
-        fetch(`/results?q=${encodeURIComponent(query)}&type=t`)
-        .then(response => { if (response.ok) return response.json(); })
-        .then(data => {
-            console.log(data);
-        })
-        .catch(error => {
+    const fetchMovieInfo = async (query) => {
+        try {
+            const response = await fetch(`/results?q=${encodeURIComponent(query)}&type=t`);
+            if (response.ok) {
+                const data = await response.json();
+                return data;
+            } else {
+                throw new Error("Network response was not ok.");
+            }
+        } catch(error) {
             console.log(error);
-        })
+        }
     }
 
     let timeout = null;
@@ -51,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         timeout = setTimeout(() => {
             fetchSearchResult(query);
-        }, 1250);
+        }, 1000);
     })
 
     searchbar.addEventListener("focus", () => {
@@ -68,9 +72,10 @@ document.addEventListener("DOMContentLoaded", function () {
      * Builds the search bar results
      * @param results the reults from fetch call to OMDB
      */
-    const buildSearchBarResults = results => {
+    const buildSearchBarResults = async results => {
         clearSearchResults();
         searchResultsContainer.classList.add("border");
+        let index = 0;
 
         // Start build of search result elements
         if (results.Error) {
@@ -81,26 +86,41 @@ document.addEventListener("DOMContentLoaded", function () {
             searchResultsContainer.append(p);
         } else {
             for (const movie of results) {
-                console.log(movie);
+                const movieInfo = await fetchMovieInfo(movie.Title);
+                // Prevent duplicate movies
+                if (movieIDs.includes(movieInfo.imdbID)) continue;
+                movieIDs[index++] = movieInfo.imdbID;
+
+                const movieLinkTag = document.createElement("a");
                 const movieDiv = document.createElement("div");
                 const leftContainer = document.createElement("div");
                 const rightContainer = document.createElement("div");
+                const movieInfoBody = document.createElement("div");
                 const moviePoster = document.createElement("img");
                 const movieTitle = document.createElement('p');
                 const movieYear = document.createElement('p');
 
-                movieDiv.classList.add("d-flex", "justify-content-start", "py-3");
-                rightContainer.classList.add("d-flex", "flex-column");
-                leftContainer.classList.add("mw-25")
-                moviePoster.classList.add("float-left", "rounded", "img-fluid", "w-100");
+                movieLinkTag.classList.add("card", "border-bottom", "my-3");
+                movieDiv.classList.add("row");
+                leftContainer.classList.add("col-1")
+                moviePoster.classList.add("img-fluid", "rounded");
+                rightContainer.classList.add("col-11");
+                movieInfoBody.classList.add("card-body");
+                movieTitle.classList.add("card-title");
+                movieYear.classList.add("card-text", "text-muted");
 
-                moviePoster.src = movie.Poster;
-                movieTitle.textContent = movie.Title;
-                movieYear.textContent = movie.Year;
+                if (movieInfo.Poster !== "N/A")
+                    moviePoster.src = movieInfo.Poster;
+                else
+                    moviePoster.src = "/static/imgs/image-not-found-vector.jpg";
+                movieTitle.textContent = movieInfo.Title;
+                movieYear.textContent = movieInfo.Year;
 
                 leftContainer.append(moviePoster);
-                rightContainer.append(movieTitle, movieYear);
+                movieInfoBody.append(movieTitle, movieYear);
+                rightContainer.append(movieInfoBody);
                 movieDiv.append(leftContainer, rightContainer);
+                movieLinkTag.append(movieDiv);
                 searchResultsContainer.append(movieDiv);
             }
         }
@@ -112,8 +132,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Clear the search results container in search bar is unfocused
-    searchbar.addEventListener("focusout", () => {
-        if (!searchResultsContainer.contains(document.activeElement) && document.activeElement !== searchbar)
-            clearSearchResults();
-    })
+    // searchbar.addEventListener("focusout", () => {
+    //     if (!searchResultsContainer.contains(document.activeElement) && document.activeElement !== searchbar)
+    //         clearSearchResults();
+    // })
 })
