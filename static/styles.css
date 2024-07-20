@@ -1,11 +1,62 @@
 .app-max-width {
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Used for matching container-fluid padding */
 .padding-for-container {
-    padding-right: calc(var(--bs-gutter-x)* .5);
-    padding-left: calc(var(--bs-gutter-x)* .5);
+  padding-right: calc(var(--bs-gutter-x) * 0.5);
+  padding-left: calc(var(--bs-gutter-x) * 0.5);
+}
+
+.open-search {
+    height: 40px;
+    cursor: pointer;
+}
+
+.search-icon-size {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  transition: background-color 0.5s ease;
+  z-index: 1020;
+}
+
+.search-icon-size:hover {
+  background-color: lightgray;
+}
+
+/* For medium screen (tablet) styles */
+@media (max-width: 768px) {
+  .sticky-search {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: 1020;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .sticky-search-open {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .md-px-0 {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .md-border-radius-0 {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
 }
