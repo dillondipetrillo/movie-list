@@ -2,10 +2,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const searchbar = document.getElementById("q");
     const searchResultsContainer = document.getElementById("search-form-result");
 
+    // Fetch search results by similar movie title
     const fetchSearchResult = (query) => {
         // Don't show results if search bar isn't focused
         if (document.activeElement !== searchbar) return;
-        fetch(`/results?q=${encodeURIComponent(query)}`)
+        fetch(`/results?q=${encodeURIComponent(query)}&type=s`)
         .then(response => { if (response.ok) return response.json(); })
         .then(data => {
             let result;
@@ -19,6 +20,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 result = { Error: data.Error, };
             }
             buildSearchBarResults(result);
+        })
+        .catch(error => {
+            console.log(error);
+        })
+    }
+
+    // Fetch a single movies info
+    const fetchMovieInfo = (query) => {
+        fetch(`/results?q=${encodeURIComponent(query)}&type=t`)
+        .then(response => { if (response.ok) return response.json(); })
+        .then(data => {
+            console.log(data);
         })
         .catch(error => {
             console.log(error);
@@ -53,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     /**
      * Builds the search bar results
-     * @param searchResults the reults from fetch call to OMDB
+     * @param results the reults from fetch call to OMDB
      */
     const buildSearchBarResults = results => {
         clearSearchResults();
