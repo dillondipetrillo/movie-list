@@ -19,30 +19,34 @@
         {% block nav %}
         <nav class="navbar navbar-expand-sm bg-body-tertiary">
             <div class="container-fluid app-max-width">
-                <a class="navbar-brand me-0" href="/">MovieList</a>{% if not no_search %}
-                <div id="search-bar-container" class="form-container flex-grow-1 sticky-search">
-                    <div class="container-fluid position-relative h-100 md-px-0">
-                        <form action="/search" method="get" class="h-100">
-                            <div class="input-group h-100">
-                                <input type="text" name="q" id="q" autocomplete="off" class="form-control rounded-end md-border-radius-0 position-relative" placeholder="Search" aria-label="Search" value="{{ q }}">
-                                <div id="close-search" class="position-absolute end-0 top-50 translate-middle-y me-2 d-sm-block d-md-none search-icon-size d-flex justify-content-center align-items-center rounded-circle">
-                                    <div class="w-100 h-100 d-flex justify-content-center align-items-center">
-                                        <i class="fa-solid fa-x fa-md"></i>
+                <a class="navbar-brand me-0" href="/">MovieList</a>
+                {% if not no_search %}
+                    <div id="search-bar-container" class="form-container flex-grow-1 sticky-search">
+                        <div class="container-fluid position-relative h-100 md-px-0">
+                            <form action="/search" method="get" class="h-100">
+                                <div class="input-group h-100">
+                                    <input type="text" name="q" id="q" autocomplete="off" class="form-control rounded-end md-border-radius-0 position-relative" placeholder="Search" aria-label="Search" value="{{ q }}">
+                                    <div id="close-search" class="position-absolute end-0 top-50 translate-middle-y me-2 d-sm-block d-md-none search-icon-size d-flex justify-content-center align-items-center rounded-circle">
+                                        <div class="w-100 h-100 d-flex justify-content-center align-items-center">
+                                            <i class="fa-solid fa-x fa-md"></i>
+                                        </div>
                                     </div>
                                 </div>
+                            </form>
+                            <div class="t-100 start-0 w-100 position-absolute padding-for-container bg-white">
+                                <div id="search-form-result" class="rounded-bottom padding-for-container"></div>
                             </div>
-                        </form>
-                        <div class="t-100 start-0 w-100 position-absolute padding-for-container bg-white">
-                            <div id="search-form-result" class="rounded-bottom padding-for-container"></div>
+                        </div>
+                        <div id="search-bar-results">
+                            
                         </div>
                     </div>
-                </div>
-            {% endif %}
-                <div id="open-search" class="d-sm-block d-md-none ms-auto d-flex justify-content-center align-items-center open-search px-3">
-                    <div class="w-100 h-100 d-flex justify-content-center align-items-center">
-                        <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+                    <div id="open-search" class="d-sm-block d-md-none ms-auto d-flex justify-content-center align-items-center open-search px-3">
+                        <div class="w-100 h-100 d-flex justify-content-center align-items-center">
+                            <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+                        </div>
                     </div>
-                </div>
+                {% endif %}
                 <button class="navbar-toggler d-sm-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
