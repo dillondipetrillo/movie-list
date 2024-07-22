@@ -1,7 +1,16 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // DOM Elements
     const searchbar = document.getElementById("q");
-    const searchResultsContainer = document.getElementById("search-form-result");
-    const movieIDs = [];
+    const searchResultsContainer = document.getElementById("search-bar-results");
+    const closeMobileSearchBar = document.getElementById("close-search");
+    const openSearchBarBtn = document.getElementById("open-search");
+    const searchBarContainer = document.getElementById("search-bar-container");
+    // Array to keep track of imdbIDs to catch duplicates
+    let movieIDs = [];
+    /* This value is to keep track of what was searched for when search bar is 
+    unfocused. If when it's focused again and its value is the same as this value, 
+    no need to recall api */
+    let searchedMovie = null;
 
     // Fetch search results by similar movie title
     const fetchSearchResult = (query) => {
@@ -27,113 +36,124 @@ document.addEventListener("DOMContentLoaded", function () {
         })
     }
 
-    // Fetch a single movies info
-    const fetchMovieInfo = async (query) => {
-        try {
-            const response = await fetch(`/results?q=${encodeURIComponent(query)}&type=t`);
-            if (response.ok) {
-                const data = await response.json();
-                return data;
-            } else {
-                throw new Error("Network response was not ok.");
-            }
-        } catch(error) {
-            console.log(error);
-        }
-    }
-
-    let timeout = null;
-
-    searchbar.addEventListener("input", () => {
-        if (!searchbar.value) {
-            clearSearchResults();
-            clearTimeout(timeout);
-            return;
-        }
-        clearTimeout(timeout);
-        let query = searchbar.value;
-
-        timeout = setTimeout(() => {
-            fetchSearchResult(query);
-        }, 1000);
-    })
-
-    searchbar.addEventListener("focus", () => {
-        if (searchbar.value)
-            fetchSearchResult(searchbar.value);
-    })
-
-    /* Use when going to /search page from GET request
-        Display search results in the main tag on page */
-    if (searchbar.value)
-        fetchSearchResult(searchbar.value);
-
     /**
      * Builds the search bar results
      * @param results the reults from fetch call to OMDB
      */
     const buildSearchBarResults = async results => {
         clearSearchResults();
-        searchResultsContainer.classList.add("border");
+        movieIDs = [];
         let index = 0;
 
         // Start build of search result elements
         if (results.Error) {
-            console.log(results.Error);
+            searchResultsContainer.classList.remove("d-none");
             const p = document.createElement('p');
             p.textContent = results.Error;
-            p.classList.add("mt-3");
+            p.classList.add("mb-0", "px-2", "py-3", "search-result", "rounded");
             searchResultsContainer.append(p);
         } else {
             for (const movie of results) {
-                const movieInfo = await fetchMovieInfo(movie.Title);
+                searchResultsContainer.classList.remove("d-none");
                 // Prevent duplicate movies
-                if (movieIDs.includes(movieInfo.imdbID)) continue;
-                movieIDs[index++] = movieInfo.imdbID;
+                if (movieIDs.includes(movie.imdbID)) continue;
+                movieIDs[index] = movie.imdbID;
 
-                const movieLinkTag = document.createElement("a");
-                const movieDiv = document.createElement("div");
+                const movieLink = document.createElement("a");
                 const leftContainer = document.createElement("div");
                 const rightContainer = document.createElement("div");
-                const movieInfoBody = document.createElement("div");
+                const moviePosterContainer = document.createElement("div");
                 const moviePoster = document.createElement("img");
                 const movieTitle = document.createElement('p');
                 const movieYear = document.createElement('p');
 
-                movieLinkTag.classList.add("card", "border-bottom", "my-3");
-                movieDiv.classList.add("row");
-                leftContainer.classList.add("col-1")
-                moviePoster.classList.add("img-fluid", "rounded");
-                rightContainer.classList.add("col-11");
-                movieInfoBody.classList.add("card-body");
-                movieTitle.classList.add("card-title");
-                movieYear.classList.add("card-text", "text-muted");
+                movieLink.classList.add("search-result", "container-fluid", "p-2", "d-flex", "border-bottom", "text-decoration-none");
+                if (results.length === 1)
+                    movieLink.classList.add("rounded");
+                if (index === 0)
+                    movieLink.classList.add("rounded-top");
+                if (index++ === results.length - 1) {
+                    movieLink.classList.add("rounded-bottom");
+                    movieLink.classList.remove("border-bottom")
+                }
+                leftContainer.classList.add("result-left", "me-2");
+                rightContainer.classList.add("result-right", "py-1");
+                moviePosterContainer.classList.add("result-img-wrapper");
+                moviePoster.classList.add("result-img");
+                movieTitle.classList.add("result-title", "mb-0", "fw-bold", "text-dark");
+                movieYear.classList.add("result-year", "text-muted", "mb-0");
 
-                if (movieInfo.Poster !== "N/A")
-                    moviePoster.src = movieInfo.Poster;
+                if (movie.Poster !== "N/A")
+                    moviePoster.src = movie.Poster;
                 else
                     moviePoster.src = "/static/imgs/image-not-found-vector.jpg";
-                movieTitle.textContent = movieInfo.Title;
-                movieYear.textContent = movieInfo.Year;
+                movieTitle.textContent = movie.Title;
+                movieYear.textContent = movie.Year;
+                movieLink.href = `/movie?id=${movie.imdbID}`;
 
-                leftContainer.append(moviePoster);
-                movieInfoBody.append(movieTitle, movieYear);
-                rightContainer.append(movieInfoBody);
-                movieDiv.append(leftContainer, rightContainer);
-                movieLinkTag.append(movieDiv);
-                searchResultsContainer.append(movieDiv);
+                moviePosterContainer.append(moviePoster);
+                leftContainer.append(moviePosterContainer);
+                rightContainer.append(movieTitle, movieYear);
+                movieLink.append(leftContainer, rightContainer);
+                searchResultsContainer.append(movieLink);
             }
         }
     }
 
+    /* Clears the search results bar */
     const clearSearchResults = () => {
         searchResultsContainer.innerHTML = '';
-        searchResultsContainer.classList.remove("border");
+        searchResultsContainer.classList.add("d-none");
     }
 
-    // Clear the search results container in search bar is unfocused
-    // searchbar.addEventListener("focusout", () => {
-    //     if (!searchResultsContainer.contains(document.activeElement) && document.activeElement !== searchbar)
-    //         clearSearchResults();
-    // })
+    /* Event Listeners */
+
+    let timeout = null;
+    searchbar.addEventListener("input", () => {
+        if (!searchbar.value) {
+            clearSearchResults();
+            clearTimeout(timeout);
+            searchedMovie = null;
+            return;
+        }
+        clearTimeout(timeout);
+        let query = searchbar.value;
+        searchedMovie = query;
+
+        timeout = setTimeout(() => {
+            fetchSearchResult(query);
+        }, 1000);
+    })
+
+    // Closes and clears mobile search bar
+    closeMobileSearchBar.addEventListener("click", () => {
+        if (searchBarContainer.classList.contains("sticky-search-open"))
+            searchBarContainer.classList.remove("sticky-search-open");
+        searchbar.value = '';
+        searchedMovie = null;
+        clearSearchResults();
+    })
+
+    // Closes search bar if clicked outside
+    document.addEventListener("click", (event) => {
+        if ((!searchbar.contains(event.target) && !searchResultsContainer.contains(event.target) && !openSearchBarBtn.contains(event.target))
+        && !searchResultsContainer.classList.contains("d-none")) {
+            searchResultsContainer.classList.add("d-none");
+        }
+    })
+
+    // Reopens closed search bar results when search bar is focused
+    searchbar.addEventListener("focus", () => {
+        if (!searchbar.value) return;
+        if (searchbar.value === searchedMovie
+        && searchResultsContainer.classList.contains("d-none")) {
+            searchResultsContainer.classList.remove("d-none");
+        }
+    })
+
+    // Open search bar when search icon clicked and focus input
+    openSearchBarBtn.addEventListener("click", () => {
+        searchBarContainer.classList.add("sticky-search-open");
+        searchbar.focus();
+    })
 })

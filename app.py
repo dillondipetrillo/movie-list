@@ -102,9 +102,8 @@ def logout():
 def results():
     """Calls the api to get movie search results"""
     query = request.args.get("q")
-    type = request.args.get("type")
     if query:
-        return search_query(query, type)
+        return search_query(query)
     
     
 @app.route("/search", methods=["GET", "POST"])

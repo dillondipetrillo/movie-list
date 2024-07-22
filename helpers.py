@@ -191,11 +191,9 @@ def login_required(f):
     return decorated_function
 
 
-def search_query(query, type):
-    """Makes call to api to get list of movies.
-        Uses type to specify if its a general search
-        or seaerch for a specific movies info"""
-    response = requests.get(f"https://www.omdbapi.com/?apikey={OMDB_API_KEY}&type=movie&{type}={query}")
+def search_query(query):
+    """Makes call to api to get list of movies."""
+    response = requests.get(f"https://www.omdbapi.com/?apikey={OMDB_API_KEY}&type=movie&s={query}")
     return jsonify(response.json())
 
 

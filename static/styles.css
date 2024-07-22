@@ -14,6 +14,33 @@
   padding-left: calc(var(--bs-gutter-x) * 0.5);
 }
 
+/* Used as a container-fluid with margin instead of padding */
+.search-container-margin {
+    margin-top: .25rem;
+    margin-right: calc(var(--bs-gutter-x) * 0.5);
+    margin-left: calc(var(--bs-gutter-x) * 0.5);
+}
+
+.result-img-wrapper {
+    max-width: 3.5rem;
+    height: 5rem;
+}
+
+.result-img-wrapper img.result-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.search-result {
+    background-color: white;
+    transition: background-color 0.5s ease;
+}
+
+.search-result:hover {
+    background-color: rgb(236, 236, 236);
+}
+
 .open-search {
     height: 40px;
     cursor: pointer;
@@ -29,6 +56,10 @@
 
 .search-icon-size:hover {
   background-color: lightgray;
+}
+
+.sticky-search {
+    position: relative;
 }
 
 /* For medium screen (tablet) styles */
@@ -62,5 +93,9 @@
     border-top-right-radius: 0 !important;
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
+  }
+
+  .search-container-margin {
+    margin: 0;
   }
 }
