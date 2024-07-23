@@ -25,7 +25,7 @@
                         <div class="container-fluid position-relative h-100 md-px-0">
                             <form action="/search" method="get" class="h-100">
                                 <div class="input-group h-100">
-                                    <input type="text" name="q" id="q" autocomplete="off" class="form-control rounded-end md-border-radius-0 position-relative" placeholder="Search" aria-label="Search" value="{{ q }}">
+                                    <input type="text" name="q" id="q" autocomplete="off" class="form-control rounded-end md-border-radius-0 position-relative" placeholder="Search" aria-label="Search">
                                     <div id="close-search" class="position-absolute end-0 top-50 translate-middle-y me-2 d-sm-block d-md-none search-icon-size d-flex justify-content-center align-items-center rounded-circle">
                                         <div class="w-100 h-100 d-flex justify-content-center align-items-center">
                                             <i class="fa-solid fa-x fa-md"></i>
@@ -100,7 +100,7 @@
             </div>
         </nav>
         {% endblock %}
-        <main>
+        <main class="container-fluid app-max-width">
             {% block main %}{% endblock %}
         </main>
         {% block body_scripts %}

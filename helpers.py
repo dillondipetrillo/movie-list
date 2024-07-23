@@ -195,8 +195,3 @@ def search_query(query):
     """Makes call to api to get list of movies."""
     response = requests.get(f"https://www.omdbapi.com/?apikey={OMDB_API_KEY}&type=movie&s={query}")
     return jsonify(response.json())
-
-
-def movie_info(query):
-    """Makes a call to api to get single movie info"""
-    response = requests.get(f"")
