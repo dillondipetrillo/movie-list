@@ -21,24 +21,23 @@
     margin-left: calc(var(--bs-gutter-x) * 0.5);
 }
 
-.result-img-wrapper, .search-page-img-wrapper {
+.result-img-wrapper {
     max-width: 3.5rem;
     height: 5rem;
 }
 
-.result-img-wrapper img.result-img,
-.search-page-img-wrapper img.search-page-result-img {
+.result-img-wrapper img.result-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
 .search-result {
-    background-color: white;
+    /* background-color: white; */
     transition: background-color 0.5s ease;
 }
 
-.search-result:hover {
+a.search-result:hover {
     background-color: rgb(236, 236, 236);
 }
 

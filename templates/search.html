@@ -5,54 +5,16 @@
 {% endblock %}
 
 {% block main %}
-    <h1 class="mb-4">Search "{{ q }}"</h1>
-    <section class="search-page-results shadow bg-light rounded">
-        <h2 class="m-3 mb-2">Results</h2>
-        <div class="search-results-wrapper">
-            <a href="" class="search-page-result d-flex p-3 border-bottom text-decoration-none">
-                <div class="search-page-result-left me-2">
-                    <div class="search-page-img-wrapper">
-                        <img class="search-page-result-img rounded" src="../static/imgs/image-not-found-vector.jpg" />
-                    </div>
-                </div>
-                <div class="search-page-result-right py-1">
-                    <p class="search-page-result-title mb-0 fw-bold text-dark">Jaws</p>
-                    <p class="search-page-result-year mb-0 text-muted">1975</p>
-                </div>
-            </a>
-            <a href="" class="search-page-result d-flex p-3 border-bottom text-decoration-none">
-                <div class="search-page-result-left me-2">
-                    <div class="search-page-img-wrapper">
-                        <img class="search-page-result-img rounded" src="../static/imgs/image-not-found-vector.jpg" />
-                    </div>
-                </div>
-                <div class="search-page-result-right py-1">
-                    <p class="search-page-result-title mb-0 fw-bold text-dark">Jaws</p>
-                    <p class="search-page-result-year mb-0 text-muted">1975</p>
-                </div>
-            </a>
-            <a href="" class="search-page-result d-flex p-3 border-bottom text-decoration-none">
-                <div class="search-page-result-left me-2">
-                    <div class="search-page-img-wrapper">
-                        <img class="search-page-result-img rounded" src="../static/imgs/image-not-found-vector.jpg" />
-                    </div>
-                </div>
-                <div class="search-page-result-right py-1">
-                    <p class="search-page-result-title mb-0 fw-bold text-dark">Jaws</p>
-                    <p class="search-page-result-year mb-0 text-muted">1975</p>
-                </div>
-            </a>
-            <a href="" class="search-page-result d-flex p-3 border-bottom text-decoration-none">
-                <div class="search-page-result-left me-2">
-                    <div class="search-page-img-wrapper">
-                        <img class="search-page-result-img rounded" src="../static/imgs/image-not-found-vector.jpg" />
-                    </div>
-                </div>
-                <div class="search-page-result-right py-1">
-                    <p class="search-page-result-title mb-0 fw-bold text-dark">Jaws</p>
-                    <p class="search-page-result-year mb-0 text-muted">1975</p>
-                </div>
-            </a>
-        </div>
+    <h1 class="mb-4">Search 
+        {% if q %}
+            <span id="search-value">"{{ q }}"</span>
+        {% else %}
+            <span id="search-value"></span>
+            MovieList
+        {% endif %}
+    </h1>
+    <section class="search-page-results mb-4">
+        <h2 class="mb-4">Results</h2>
+        <div id="search-results-wrapper" class="shadow bg-light rounded"></div>
     </section>
 {% endblock %}
