@@ -11,12 +11,4 @@
     {% elif not user.username %}
         <p>Hello There</p>
     {% endif %}
-
-    <form action="/search" method="get">
-        <input autocomplete="off" type="text" name="q" placeholder="Start typing..." id="q" >
-        <button type="submit">Search</button>
-    </form>
-{% endblock %}
-{% block body_scripts %}
-    <script src="../static/js/search.js"></script>
 {% endblock %}
