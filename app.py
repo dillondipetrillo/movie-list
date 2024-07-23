@@ -106,11 +106,8 @@ def results():
         return search_query(query)
     
     
-@app.route("/search", methods=["GET", "POST"])
+@app.route("/search")
 def search():
     """Search results page"""
-    if request.method == "GET":
-        query = request.args.get("q", "")
-    elif request.method == "POST":
-        query = request.form.get("q", "")
+    query = request.args.get("q", "")
     return render_template("search.html", q=query)

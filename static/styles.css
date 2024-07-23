@@ -33,11 +33,11 @@
 }
 
 .search-result {
-    background-color: white;
+    /* background-color: white; */
     transition: background-color 0.5s ease;
 }
 
-.search-result:hover {
+a.search-result:hover {
     background-color: rgb(236, 236, 236);
 }
 
