@@ -7,7 +7,7 @@ from werkzeug.security import check_password_hash
 # Load env variables
 load_dotenv()
 
-DATABASE = "movielist.db"
+DATABASE = os.getenv("DATABASE_NAME")
 # Get API key
 OMDB_API_KEY = os.getenv("OMDB_API_KEY")
 # Regex pattern for simple email matching
