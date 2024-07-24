@@ -5,16 +5,32 @@
 {% endblock %}
 
 {% block main %}
-    <h1>Sign Up</h1>
-    <form action="/signup" method="post">
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="email" name="email" placeholder="Email" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <input type="password" name="password-confirm" placeholder="Confirm Password" required>
-        <button type="submit">Sign Up</button>
-    </form>
-    <p>Already have an account? <a href="login">Log In</a></p>
-    {% if error %}
-        <p>{{ error }}</p>
-    {% endif %}
+    <section class="enter-form border rounded p-3 mx-auto shadow">
+        <h1>Sign Up</h1>
+        <form action="/signup" method="post">
+            <div class="form-group mb-3">
+                <label class="form-label" for="username">Username</label>
+                <input class="form-control border-dark" id="username" type="text" name="username" placeholder="Username" required>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label" for="email">Email</label>
+                <input class="form-control border-dark" id="email" type="email" name="email" placeholder="Email" required>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label" for="password">Password</label>
+                <input class="form-control border-dark" id="password" type="password" name="password" placeholder="Password" required>
+            </div>
+            <div class="form-group mb-3">
+                <label class="form-label" for="password-confirm">Confirm Password</label>
+                <input class="form-control border-dark" id="password-confirm" type="password" name="password-confirm" placeholder="Confirm Password" required>
+            </div>
+            <div class="form-group mb-3">
+                <button type="submit" class="form-control btn btn-primary">Sign Up</button>
+            </div>
+        </form>
+        <p>Already have an account? <a href="login">Log In</a></p>
+        {% if error %}
+            <p class="text-danger">{{ error }}</p>
+        {% endif %}
+    </section>
 {% endblock %}

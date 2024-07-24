@@ -62,6 +62,10 @@ a.search-result:hover {
     position: relative;
 }
 
+.enter-form {
+  max-width: 450px;
+}
+
 /* For medium screen (tablet) styles */
 @media (max-width: 768px) {
   .sticky-search {

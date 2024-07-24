@@ -104,7 +104,7 @@ def verify_sign_up_data(data):
     # Verify password
     password = data["password"]
     if not PASSWORD_PATTERN.match(password) or not password:
-        return "Password is must contain at least one uppercase letter, digit, and special character(@$!%*?&)."
+        return "Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)."
     
     # Verify password confirmation
     confirm_password = data["confirm_password"]
