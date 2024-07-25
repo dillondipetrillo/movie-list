@@ -7,36 +7,38 @@
 {% block main %}
     <section class="enter-form border rounded p-3 mx-auto shadow">
         <h1>Sign Up</h1>
-        <form action="/signup" method="post" id="entry-form" data-form="signup">
+        <form action="/signup" method="post" id="entry-form">
             <div class="form-group mb-3">
                 <label class="form-label" for="username">Username</label>
-                <input class="form-control" id="username" type="text" name="username" placeholder="Username" required>
+                <input class="form-control {% if errors and errors["username"] %} border-danger focus-ring focus-ring-danger {% endif %}" id="username" type="text" name="username" 
+                placeholder="Username" required {% if sign_up_info %} value={{ sign_up_info["username"] }} {% endif %}>
             </div>
             <div class="form-group mb-3">
                 <label class="form-label" for="email">Email</label>
-                <input class="form-control" id="email" type="email" name="email" placeholder="Email" required>
+                <input class="form-control {% if errors and errors["email"] %} border-danger focus-ring focus-ring-danger {% endif %}" id="email" type="email" name="email" 
+                placeholder="Email" required {% if sign_up_info %} value={{ sign_up_info["email"] }} {% endif %}>
             </div>
             <div class="form-group mb-3">
                 <label class="form-label" for="password">Password</label>
-                <input class="form-control" id="password" type="password" name="password" placeholder="Password" required>
+                <input class="form-control {% if errors and errors["password"] %} border-danger focus-ring focus-ring-danger {% endif %}" id="password" type="password" name="password" placeholder="Password" required>
             </div>
             <div class="form-group mb-3">
                 <label class="form-label" for="password-confirm">Confirm Password</label>
-                <input class="form-control" id="password-confirm" type="password" name="password-confirm" placeholder="Confirm Password" required>
+                <input class="form-control {% if errors and errors["confirm_password"] %} border-danger focus-ring focus-ring-danger {% endif %}" id="password-confirm" type="password" name="password-confirm" placeholder="Confirm Password" required>
             </div>
             <div class="form-group mb-3">
                 <button type="submit" class="form-control btn btn-primary">Sign Up</button>
             </div>
         </form>
-        <!-- {% if error %}
+        {% if errors %}
+            <ul id="entry-form-errors">
+                {% for error in errors %}
+                    <li class="text-danger">{{ errors[error] }}</li>
+                {% endfor %}
+            </ul>
+        {% elif error %}
             <p class="text-danger">{{ error }}</p>
-        {% endif %} -->
-        <!-- <ul>
-            <li class="text-danger">Username must be at least 2 characters</li>
-            <li class="text-danger">Must enter a valid email</li>
-            <li class="text-danger">Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)</li>
-            <li class="text-danger">Passwords must match</li>
-        </ul> -->
+        {% endif %} 
         <p>Already have an account? <a href="login">Log In</a></p>
     </section>
 {% endblock %}

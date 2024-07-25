@@ -32,7 +32,7 @@ def signup():
     
     if request.method == "POST":
         # Form submission
-        error = None
+        errors = None
         sign_up_data = {
             'username': request.form.get("username"),
             'email': request.form.get("email"),
@@ -40,9 +40,9 @@ def signup():
             'confirm_password': request.form.get("password-confirm"),
         }
         # Set error message if cannot verify sign up form info
-        error = verify_sign_up_data(sign_up_data)
-        if error:
-            return render_template("signup.html", error=error, no_search=True)
+        errors = verify_sign_up_data(sign_up_data)
+        if errors:
+            return render_template("signup.html", errors=errors, sign_up_info=sign_up_data, no_search=True)
         
         pw_hash = generate_password_hash(
             sign_up_data["password"], 

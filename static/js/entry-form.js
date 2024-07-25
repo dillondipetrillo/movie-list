@@ -7,20 +7,12 @@ const formFields = [...formFieldElements];
 let errorFields;
 const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9]+\.[a-zA-Z0-9-.]+$/;
 const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$/;
-let errorMsgs;
-if (entryForm.dataset.form === "signup") { // Sign up form
-    errorMsgs = {
-        "username": "Username must be at least 2 characters",
-        "email": "Must enter a valid email",
-        "password": "Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)",
-        "password-confirm": "Passwords must match",
-    };
-} else if (entryForm.dataset.form === "login") { // Login form
-    errorMsgs = {
-        "email": "Invalid email",
-        "password": "Invalid password",
-    };
-}
+let errorMsgs = {
+    "username": "Username must be at least 2 characters",
+    "email": "Invalid email",
+    "password": "Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)",
+    "password-confirm": "Passwords must match",
+};
 
 // Event listeners
 entryForm.addEventListener("submit", (event) => {
@@ -80,9 +72,13 @@ const validateField = (field, fieldsArr) => {
  */
 const buildErrorMessages = (errors, form) => {
     let errorList;
+    let errorListItems;
+
     if (!(errorList = document.getElementById("form-error-list"))) {
         errorList = document.createElement("ul");
         errorList.id = "form-error-list";
+    } else if ((errorListItems = errorList.querySelectorAll("#fail-response"))) {
+        console.log(errorListItems);
     } else
         errorList.innerHTML = '';
 

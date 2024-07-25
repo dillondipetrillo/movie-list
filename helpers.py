@@ -73,43 +73,46 @@ def verify_sign_up_data(data):
         Verify the sign up form email is present and unique and a valid email address.
         Verify that the sign up form password is present and valid compared to regex pattern.
         Verify that the confirm_password matches the password.
-        Return error message if any fail.
+        Return error messages dictionary if any fail.
     """
     conn = get_db_connection()
     cur = conn.cursor()
     
+    # Variable to hold dictionary of error messages if any errors found
+    error_msgs = {}
+    
     # Verify username
     username = data["username"]
-    if not username:
-        conn.close()
-        return "You must enter a unique username."
-    cur.execute("SELECT * FROM users WHERE username = ?", (username,))
-    result = cur.fetchone()
-    if result:
-        conn.close()
-        return "Username already in use."
+    if not username or len(username) < 2:
+        error_msgs["username"] = "Username must be at least 2 characters"
+    else:
+        cur.execute("SELECT * FROM users WHERE username = ?", (username,))
+        result = cur.fetchone()
+        if result:
+            error_msgs["username"] = "Username already exists"
     
     # Verify email
     email = data["email"]
     if not email or not EMAIL_PATTERN.match(email):
-        conn.close()
-        return "You must enter a unique email. (example@mail.com)"
-    cur.execute("SELECT * FROM users WHERE email = ?", (email,))
-    result = cur.fetchone()
-    if result:
-        conn.close()
-        return "Email already in use."
-    
-    conn.close()
+        error_msgs["email"] = "Enter a valid email (example@mail.com)"
+    else:
+        cur.execute("SELECT * FROM users WHERE email = ?", (email,))
+        result = cur.fetchone()
+        if result:
+            error_msgs["email"] = "Email already exists"
+
     # Verify password
     password = data["password"]
     if not PASSWORD_PATTERN.match(password) or not password:
-        return "Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)."
+        error_msgs["password"] = "Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)."
     
     # Verify password confirmation
     confirm_password = data["confirm_password"]
     if not confirm_password == password or not confirm_password:
-        return "Passwords must match."
+        error_msgs["confirm_password"] = "Passwords must match."
+        
+    conn.close()
+    return error_msgs
    
     
 def verify_login_data(data):

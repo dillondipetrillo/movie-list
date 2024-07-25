@@ -7,7 +7,7 @@
 {% block main %}
     <section class="enter-form border rounded p-3 mx-auto shadow">
         <h1>Login</h1>
-        <form action="/login" method="post" id="entry-form" data-form="login">
+        <form action="/login" method="post" id="entry-form">
             <div class="form-group mb-3">
                 <label class="form-label" for="email">Email</label>
                 <input class="form-control" id="email" type="email" name="email" placeholder="Email" required>
@@ -20,13 +20,13 @@
                 <button type="submit" class="form-control btn btn-primary">Login</button>
             </div>
         </form>
-        <!-- {% if error %}
+        {% if error %}
             <p class="text-danger">{{ error }}</p>
-        {% endif %} -->
+        {% endif %}
         <p>Don't have an account? <a href="/signup">Sign Up</a></p>
     </section>
 {% endblock %}
 
 {% block body_scripts %}
-    <script type="text/javascript" src="../static/js/entry-form.js"></script>
+    <!-- <script type="text/javascript" src="../static/js/entry-form.js"></script> -->
 {% endblock %}
