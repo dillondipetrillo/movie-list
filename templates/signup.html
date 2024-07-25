@@ -7,7 +7,7 @@
 {% block main %}
     <section class="enter-form border rounded p-3 mx-auto shadow">
         <h1>Sign Up</h1>
-        <form action="/signup" method="post" id="sign-up-form">
+        <form action="/signup" method="post" id="entry-form" data-form="signup">
             <div class="form-group mb-3">
                 <label class="form-label" for="username">Username</label>
                 <input class="form-control" id="username" type="text" name="username" placeholder="Username" required>
@@ -42,5 +42,5 @@
 {% endblock %}
 
 {% block body_scripts %}
-    <script type="text/javascript" src="../static/js/signup.js"></script>
+    <script type="text/javascript" src="../static/js/entry-form.js"></script>
 {% endblock %}
