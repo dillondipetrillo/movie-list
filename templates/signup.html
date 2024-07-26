@@ -11,7 +11,7 @@
             <div class="form-group mb-3">
                 <label class="form-label" for="username">Username</label>
                 <input class="form-control {% if errors and errors["username"] %} border-danger focus-ring focus-ring-danger {% endif %}" id="username" type="text" name="username" 
-                placeholder="Username" required {% if sign_up_info %} value={{ sign_up_info["username"] }} {% endif %}>
+                placeholder="Username" required {% if sign_up_info %} value={{ sign_up_info["username"] }} {% endif %} autofocus>
             </div>
             <div class="form-group mb-3">
                 <label class="form-label" for="email">Email</label>

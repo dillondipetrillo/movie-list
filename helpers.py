@@ -147,10 +147,10 @@ def verify_login_data(data):
         return error_msgs
     session["user_id"] = user[0]
     session["username"] = user[1]
-    cookie_checkbox = data["stay-logged-in"]
-    if cookie_checkbox:
-        # Cookie the user in for 30 days
-        print("cookie")
+    persist_login = data["stay-logged-in"]
+    # Keep user logged in for 30 days if checkbox is checked
+    if persist_login:
+        session.permanent = True
     return None
     
     

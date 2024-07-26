@@ -1,3 +1,4 @@
+from datetime import timedelta
 from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from helpers import create_tables, get_user_id, insert_user_db, login_required, verify_sign_up_data, verify_login_data, get_user, search_query
@@ -10,8 +11,9 @@ app = Flask(__name__)
 create_tables()
 
 # Configure session to user filesystem (instead of signed cookies)
-app.config["SESSION_PERMANENT"] = False
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
 app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_PERMANENT"] = False
 Session(app)
 
 @app.route('/')
@@ -76,7 +78,7 @@ def login():
         sign_in_data = {
             'email': request.form.get("email"),
             'password': request.form.get("password"),
-            'stay-logged-in': request.form.get("stay-loggin-in"),
+            'stay-logged-in': request.form.get("stay-logged-in"),
         }
         # Set error message if data cannot validate
         error = verify_login_data(sign_in_data)
