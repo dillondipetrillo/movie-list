@@ -123,21 +123,35 @@ def verify_login_data(data):
     conn = get_db_connection()
     cur = conn.cursor()
     
+    # Variable to hold the dictionary of possible error messages
+    error_msgs = {}
+    
     # Verify username
     email = data["email"]
     cur.execute("SELECT * FROM users WHERE email = ?", (email,))
     user = cur.fetchone()
-    if not user:
+    if not email or not EMAIL_PATTERN.match(email):
+        error_msgs["email"] = "Not a valid email"
         conn.close()
-        return "Email not found."
+        return error_msgs
+    elif not user:
+        conn.close()
+        error_msgs["email"] = "Email not found"
+        return error_msgs
     
     conn.close()
     # Verify password matches
     password = data["password"]
     if not check_password_hash(user[3], password):
-        return "Incorrect password."
+        error_msgs["password"] = "Incorrect password."
+        return error_msgs
     session["user_id"] = user[0]
     session["username"] = user[1]
+    cookie_checkbox = data["stay-logged-in"]
+    if cookie_checkbox:
+        # Cookie the user in for 30 days
+        print("cookie")
+    return None
     
     
 def insert_user_db(user_data, pw_hash):

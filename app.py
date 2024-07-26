@@ -76,11 +76,12 @@ def login():
         sign_in_data = {
             'email': request.form.get("email"),
             'password': request.form.get("password"),
+            'stay-logged-in': request.form.get("stay-loggin-in"),
         }
         # Set error message if data cannot validate
         error = verify_login_data(sign_in_data)
         if error:
-            return render_template("login.html", error=error, no_search=True)
+            return render_template("login.html", error=error, sign_in_info=sign_in_data, no_search=True)
         return redirect('/')
     
     # User reached via GET (clicking a link or via redirect)
