@@ -1,6 +1,6 @@
 from datetime import timedelta
 from dotenv import load_dotenv
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, request, session, url_for
 from flask_mail import Mail, Message
 from flask_session import Session
 from helpers import create_tables, get_user_id, insert_user_db, login_required, verify_sign_up_data, verify_login_data, get_user, search_query, verify_user_email
@@ -27,9 +27,7 @@ Session(app)
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USERNAME'] = os.getenv("EMAIL")
-# app.config['MAIL_USERNAME'] = "reset.movielist@gmail.com"
 app.config['MAIL_PASSWORD'] = os.getenv("EMAIL_PASSWORD")
-# app.config['MAIL_PASSWORD'] = "wqai ahyj izmy szuf"
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 
@@ -146,17 +144,14 @@ def reset_password():
             return render_template("reset-password.html", no_search=True, error=errors, email=email)
         else:
             token = s.dumps(email, salt="email-confirm")
-            msg = Message("Password Reset Request", sender=os.getenv("EMAIL"), recipients=[email])
+            msg = Message("MovieList Password Reset Request", sender=os.getenv("EMAIL"), recipients=[email])
             link = url_for("reset_with_token", token=token, _external=True)
             msg.body = f"Your password reset link is {link}"
             try:
                 mail.send(msg)
-                flash("Password reset link has been sent to your email", "info")
-                return render_template("login.html", no_search=True, email=email)
-            except Exception as e:
-                print(f"Error sending mail: {e}")
-                flash("Error sending mail", "error")
-                return render_template("reset-password.html", no_search=True, email=email)
+                return render_template("reset-password.html", no_search=True, success="Password reset link has been sent to your email")
+            except:
+                return render_template("reset-password.html", no_search=True, email_error="Error sending email. Please try again.")
     else:
         return render_template("reset-password.html", no_search=True)
     
@@ -165,7 +160,7 @@ def reset_password():
 def reset_with_token(token):
     """Displays form for resetting password if token is not expired"""
     try:
-        email = s.loads(token, salt="email-confirmation", max_age=3600)
+        email = s.loads(token, salt="email-confirmation", max_age=900)
     except SignatureExpired:
         flash("The reset link has expired.", "error")
         return redirect("/reset-password")
