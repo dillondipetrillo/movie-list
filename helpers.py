@@ -198,6 +198,22 @@ def get_user(user_id):
     return user_dict
 
 
+def verify_user_email(email):
+    """Returns an empty error dictionary if email is in db
+        otherwise return the error message in the dictionary"""
+    err_msgs = {}
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT email FROM users WHERE email = ?", (email,))
+    user_email = cur.fetchone()
+    conn.close()
+    if not EMAIL_PATTERN.match(email):
+        err_msgs["email"] = "Not a valid email"
+    elif not user_email:
+        err_msgs["email"] = "No email found"
+    return err_msgs
+
+
 def login_required(f):
     """Decorate routes to require login."""
     @wraps(f)
