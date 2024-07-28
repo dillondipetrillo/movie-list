@@ -149,11 +149,12 @@ def reset_password():
             msg.body = f"Your password reset link is {link}"
             try:
                 mail.send(msg)
-                return render_template("reset-password.html", no_search=True, success="Password reset link has been sent to your email")
+                return redirect(url_for("reset_password", success="Password reset link has been sent to your email"))
             except:
                 return render_template("reset-password.html", no_search=True, email_error="Error sending email. Please try again.")
     else:
-        return render_template("reset-password.html", no_search=True)
+        success_msg = request.args.get("success")
+        return render_template("reset-password.html", no_search=True, success=success_msg)
     
 
 @app.route("/reset/<token>", methods=["GET", "POST"])
