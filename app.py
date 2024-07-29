@@ -151,7 +151,7 @@ def reset_password():
     if not token:
         return redirect("/login")
     try:
-        validate = s.loads(token, salt="reset", max_age=3600)
+        s.loads(token, salt="reset", max_age=3600)
     except SignatureExpired:
         return redirect("login")
     if request.method == "POST":
