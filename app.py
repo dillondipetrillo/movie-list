@@ -97,8 +97,6 @@ def signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Route for login page"""
-    # Token for reset password link url param
-    token = s.dumps("reset-password", salt="reset")
     # User is attempting to login
     if request.method == "POST":
         # Forget any user_id
@@ -112,10 +110,10 @@ def login():
         # Set error message if data cannot validate
         error = verify_login_data(sign_in_data)
         if error:
-            return render_template("login.html", error=error, token=token, sign_in_info=sign_in_data, no_search=True)
+            return render_template("login.html", error=error, sign_in_info=sign_in_data, no_search=True)
         return redirect('/')
 
-    return render_template("login.html", no_search=True, token=token, reset_success=get_message_from_flash(session.pop(FLASH_KEY, None)))
+    return render_template("login.html", no_search=True, reset_success=get_message_from_flash(session.pop(FLASH_KEY, None)))
 
 
 @app.route("/logout")
@@ -147,13 +145,6 @@ def search():
 def reset_password():
     """Page to verify user in order to send url with token to change password"""
     email = request.form.get("email")
-    token = request.args.get("token")
-    if not token:
-        return redirect("/login")
-    try:
-        s.loads(token, salt="reset", max_age=3600)
-    except SignatureExpired:
-        return redirect("login")
     if request.method == "POST":
         errors = verify_user_email(email)
         if errors:
