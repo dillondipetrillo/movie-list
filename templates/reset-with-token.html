@@ -11,7 +11,7 @@
             <form action="" method="post" id="entry-form">
                 <div class="form-group mb-3">
                     <label class="form-label" for="password">New Password</label>
-                    <input class="form-control" id="password" type="password" name="password" placeholder="New Password" required autofocus>
+                    <input class="form-control {% if error %} border-danger focus-ring focus-ring-danger {% endif %}" id="password" type="password" name="password" placeholder="New Password" required autofocus>
                 </div>
                 <div class="form-group mb-3">
                     <label class="form-label" for="password-confirm">Confirm Password</label>
