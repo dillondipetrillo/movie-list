@@ -144,5 +144,5 @@ $RECYCLE.BIN/
 *.sql
 *.sqlite
 
-# Ignore the database file
+# Ignore the database files
 *.db
