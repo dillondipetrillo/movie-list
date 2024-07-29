@@ -1,12 +1,13 @@
 import os, re, requests, sqlite3
 from dotenv import load_dotenv
-from flask import jsonify, redirect, session
+from flask import get_flashed_messages, jsonify, redirect, session
 from functools import wraps
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # Load env variables
 load_dotenv()
 
+# Global variables
 DATABASE = os.getenv("DATABASE_NAME")
 # Get API key
 OMDB_API_KEY = os.getenv("OMDB_API_KEY")
@@ -18,6 +19,7 @@ EMAIL_PATTERN = re.compile(
 PASSWORD_PATTERN = re.compile(
     r"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$"
 )
+PASSWORD_ERR = "Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)."
 
 def get_db_connection():
     """
@@ -43,7 +45,7 @@ def create_tables():
             password_hash TEXT NOT NULL
         );
     """)
-    
+
     cur.execute("""
         CREATE TABLE IF NOT EXISTS movies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,7 +64,7 @@ def create_tables():
             FOREIGN KEY (movie_id) REFERENCES movies (id)
         );
     """)
-    
+
     conn.commit()
     conn.close()
 
@@ -77,10 +79,10 @@ def verify_sign_up_data(data):
     """
     conn = get_db_connection()
     cur = conn.cursor()
-    
+
     # Variable to hold dictionary of error messages if any errors found
     error_msgs = {}
-    
+
     # Verify username
     username = data["username"]
     if not username or len(username) < 2:
@@ -90,7 +92,7 @@ def verify_sign_up_data(data):
         result = cur.fetchone()
         if result:
             error_msgs["username"] = "Username already exists"
-    
+
     # Verify email
     email = data["email"]
     if not email or not EMAIL_PATTERN.match(email):
@@ -104,17 +106,17 @@ def verify_sign_up_data(data):
     # Verify password
     password = data["password"]
     if not PASSWORD_PATTERN.match(password) or not password:
-        error_msgs["password"] = "Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)."
-    
+        error_msgs["password"] = PASSWORD_ERR
+
     # Verify password confirmation
     confirm_password = data["confirm_password"]
     if not confirm_password == password or not confirm_password:
         error_msgs["confirm_password"] = "Passwords must match."
-        
+
     conn.close()
     return error_msgs
-   
-    
+
+
 def verify_login_data(data):
     """
         Verify the login username is present in database.
@@ -122,10 +124,10 @@ def verify_login_data(data):
     """
     conn = get_db_connection()
     cur = conn.cursor()
-    
+
     # Variable to hold the dictionary of possible error messages
     error_msgs = {}
-    
+
     # Verify username
     email = data["email"]
     cur.execute("SELECT * FROM users WHERE email = ?", (email,))
@@ -138,7 +140,7 @@ def verify_login_data(data):
         conn.close()
         error_msgs["email"] = "Email not found"
         return error_msgs
-    
+
     conn.close()
     # Verify password matches
     password = data["password"]
@@ -152,8 +154,8 @@ def verify_login_data(data):
     if persist_login:
         session.permanent = True
     return None
-    
-    
+
+
 def insert_user_db(user_data, pw_hash):
     """Insert the registering user into the database"""
     conn = get_db_connection()
@@ -214,6 +216,40 @@ def verify_user_email(email):
     return err_msgs
 
 
+def verify_password_change(user_data):
+    """Verify password change data. Confirms password matches password
+        requirements and matches with the confirm password field.
+        If so, users password is updated"""
+    # Verify password and password-confirm
+    password = user_data["password"]
+    password_confirm = user_data["password-confirm"]
+    if not PASSWORD_PATTERN.match(password) or not password:
+         return PASSWORD_ERR
+    if not password == password_confirm:
+        return "Passwords must match"
+
+    # Validate that the new password is not same as the current password
+    email = user_data["email"]
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    cur.execute("SELECT password_hash FROM users WHERE email = ?", (email,))
+    user_pw = cur.fetchone()
+    if check_password_hash(user_pw[0], password):
+        conn.close()
+        return "The new password cannot be the same as a previously used password"
+
+    # Password is valid and matches the password-confirm field and is unique
+    new_pw_hash = generate_password_hash(
+        password, 
+        method="pbkdf2", 
+        salt_length=16)
+    cur.execute("UPDATE users SET password_hash = ? WHERE email = ?", (new_pw_hash, email))
+    conn.commit()
+    conn.close()
+    return None
+
+
 def login_required(f):
     """Decorate routes to require login."""
     @wraps(f)
@@ -222,6 +258,14 @@ def login_required(f):
             return redirect("/login")
         return f(*args, **kwargs)
     return decorated_function
+
+
+def get_message_from_flash(category):
+    """Gets the message from flash in the provided category"""
+    if not category: return None
+    messages = get_flashed_messages(with_categories=True)
+    cat_msg = [msg for cat, msg in messages if cat == category]
+    return cat_msg[0] if cat_msg else None
 
 
 def search_query(query):

@@ -1,9 +1,9 @@
 from datetime import timedelta
 from dotenv import load_dotenv
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_mail import Mail, Message
 from flask_session import Session
-from helpers import create_tables, get_user_id, insert_user_db, login_required, verify_sign_up_data, verify_login_data, get_user, search_query, verify_user_email
+from helpers import create_tables, get_user_id, insert_user_db, login_required, verify_sign_up_data, verify_login_data, get_user, search_query, verify_user_email, get_message_from_flash, verify_password_change
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from werkzeug.security import generate_password_hash
 import secrets, os
@@ -16,6 +16,9 @@ app = Flask(__name__)
 
 # Creates necessary tables for database
 create_tables()
+
+# Global variable for setting flash message key
+FLASH_KEY = "flash_key" 
 
 app.config["SECRET_KEY"] = secrets.token_urlsafe(16)
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
@@ -34,6 +37,21 @@ app.config['MAIL_USE_SSL'] = False
 mail = Mail(app)
 s = URLSafeTimedSerializer(app.secret_key)
 
+@app.before_request
+def check_session():
+    """Redirects logged in user to homepage if trying to visit pages 
+        that should only be accessed by logged out users"""
+    public_routes = ["login", "signup", "reset_password", "reset_with_token"]
+    # Get current endpoint
+    endpoint = request.endpoint
+    
+    # Check if user is logged in
+    if session.get("user_id"):
+        # Redirect to homepage if logged in user is trying to access route in public_routes
+        if endpoint in public_routes:
+            return redirect("/")
+
+
 @app.route('/')
 def index():
     """Homepage for signed in user"""
@@ -44,10 +62,6 @@ def index():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     """Register a new user"""
-    # Redirect to home if already logged in
-    if session.get("user_id"):
-        return redirect("/")
-    
     session.clear()
     
     if request.method == "POST":
@@ -76,22 +90,19 @@ def signup():
         session["user_id"] = id[0]
         session["username"] = sign_up_data["username"]
         return redirect('/')
-    else:
-        return render_template("signup.html", no_search=True)
+
+    return render_template("signup.html", no_search=True)
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Route for login page"""
-    # Redirect to home if already logged in
-    if session.get("user_id"):
-        return redirect("/")
-    
-    # Forget any user_id
-    session.clear()
-    
+    # Token for reset password link url param
+    token = s.dumps("reset-password", salt="reset")
     # User is attempting to login
     if request.method == "POST":
+        # Forget any user_id
+        session.clear()
         error = None
         sign_in_data = {
             'email': request.form.get("email"),
@@ -101,14 +112,12 @@ def login():
         # Set error message if data cannot validate
         error = verify_login_data(sign_in_data)
         if error:
-            return render_template("login.html", error=error, sign_in_info=sign_in_data, no_search=True)
+            return render_template("login.html", error=error, token=token, sign_in_info=sign_in_data, no_search=True)
         return redirect('/')
-    
-    # User reached via GET (clicking a link or via redirect)
-    else:
-        return render_template("login.html", no_search=True)
-    
-    
+
+    return render_template("login.html", no_search=True, token=token, reset_success=get_message_from_flash(session.pop(FLASH_KEY, None)))
+
+
 @app.route("/logout")
 def logout():
     """Logs the user out of their account"""
@@ -125,8 +134,8 @@ def results():
     query = request.args.get("q")
     if query:
         return search_query(query)
-    
-    
+
+
 @app.route("/search")
 def search():
     """Search results page"""
@@ -138,6 +147,13 @@ def search():
 def reset_password():
     """Page to verify user in order to send url with token to change password"""
     email = request.form.get("email")
+    token = request.args.get("token")
+    if not token:
+        return redirect("/login")
+    try:
+        validate = s.loads(token, salt="reset", max_age=3600)
+    except SignatureExpired:
+        return redirect("login")
     if request.method == "POST":
         errors = verify_user_email(email)
         if errors:
@@ -149,30 +165,37 @@ def reset_password():
             msg.body = f"Your password reset link is {link}"
             try:
                 mail.send(msg)
-                return redirect(url_for("reset_password", success="Password reset link has been sent to your email"))
+                session[FLASH_KEY] = "reset_success"
+                flash("Password reset link has been sent to your email", session.get(FLASH_KEY))
+                return redirect(url_for("login"))
             except:
                 return render_template("reset-password.html", no_search=True, email_error="Error sending email. Please try again.")
-    else:
-        success_msg = request.args.get("success")
-        return render_template("reset-password.html", no_search=True, success=success_msg)
-    
 
-@app.route("/reset/<token>", methods=["GET", "POST"])
+    return render_template("reset-password.html", no_search=True, reset_error=get_message_from_flash(session.pop(FLASH_KEY, None)))
+
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
 def reset_with_token(token):
     """Displays form for resetting password if token is not expired"""
     try:
-        email = s.loads(token, salt="email-confirmation", max_age=900)
+        email = s.loads(token, salt="email-confirm", max_age=900)
     except SignatureExpired:
-        flash("The reset link has expired.", "error")
+        session[FLASH_KEY] = "reset_error"
+        flash("The reset link has expired. Please enter email again.", session.get(FLASH_KEY))
         return redirect("/reset-password")
-    
     if request.method == "POST":
-        new_password = request.form.get("new-password")
-        confirm_password = request.form.get("confirm-password")
-        if new_password == confirm_password:
-            flash("Your password has been updated successfully", "success")
-            return redirect("/login")
-        else:
-            flash("Passwords do not match", "error")
-    
-    return render_template("reset-with-token.html", token=token)
+        # try to update password
+        password_change_data = {
+            "email": email,
+            "password": request.form.get("password"),
+            "password-confirm": request.form.get("password-confirm"),
+        }
+        errors = verify_password_change(password_change_data)
+        if errors:
+            return render_template("reset-with-token.html", no_search=True, error=errors)
+        # Password verified, user is updated in db
+        session[FLASH_KEY] = "reset_true"
+        flash("Password has been successfully reset", session.get(FLASH_KEY))
+        return redirect("/login")
+
+    return render_template("reset-with-token.html", no_search=True, token=token)
