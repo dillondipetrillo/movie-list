@@ -1,5 +1,6 @@
 import os, re, requests, sqlite3
 from dotenv import load_dotenv
+from entry_form_fields import username_field, email_field, password_field, new_password_field, confirm_password_field
 from flask import get_flashed_messages, jsonify, redirect, session
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -7,7 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 # Load env variables
 load_dotenv()
 
-# Global variables
+################## Global Variables Start ##################
 DATABASE = os.getenv("DATABASE_NAME")
 # Get API key
 OMDB_API_KEY = os.getenv("OMDB_API_KEY")
@@ -20,6 +21,7 @@ PASSWORD_PATTERN = re.compile(
     r"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$"
 )
 PASSWORD_ERR = "Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)."
+################## Global Variables End ##################
 
 def get_db_connection():
     """
@@ -272,3 +274,33 @@ def search_query(query):
     """Makes call to api to get list of movies."""
     response = requests.get(f"https://www.omdbapi.com/?apikey={OMDB_API_KEY}&type=movie&s={query}")
     return jsonify(response.json())
+
+
+def create_form(form_type, form_title, form_button, form_action=None):
+    """
+        Creates a dictionary from the provided form info.
+        Parameters:
+        - form_type (str): builds form_fields based on type
+        - form_title (str): for the title block and h1
+        - form_action (str): if action is the same route as form, dont include
+        - form_button (str): text for submit button
+    """
+    # Possible form fields for each entry-form type
+    ENTRY_FORM_FIELDS = {
+        "signup": [username_field, email_field, password_field, confirm_password_field],
+        "login": [email_field, password_field],
+        "forgot": [email_field],
+        "reset": [new_password_field, confirm_password_field],
+    }
+    # Basic form dictionary with required fields
+    form_info = {
+        "form_type": form_type,
+        "form_title": form_title,
+        "form_button": form_button
+    }
+    
+    form_info["form_fields"] = ENTRY_FORM_FIELDS[form_type]
+    if form_action:
+        form_info["form_action"] = form_action
+    
+    return form_info

@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block title%}
+    {% if form["form_title"] %}{{ form["form_title"] }}{% endif %}
+{% endblock %}
+
+{% block main %}
+    <section class="enter-form border rounded p-3 mx-auto shadow">
+        <h1>{{ form["form_title"] if form["form_title"] else "MovieList Form" }}</h1>
+        {% if reset_success %}
+            <p class="text-success bg-success bg-opacity-10 border-success border-opacity-10 rounded-2 py-2 px-3">{{ reset_success }}</p>
+        {% endif %}
+        {% if form["form_type"] == "forgot" %}
+            <p>Enter your email address below, and we'll send you a link to reset your password</p>
+        {% elif form["form_type"] == "reset" %}
+            <p>Enter your new password</p>
+        {% endif %}
+        <form action="{% if form["form_action"] %}{{ form["form_action"] }}{% endif %}" method="post" id="entry-form">
+            {% if form["form_fields"] %}
+                {% for field in form["form_fields"] %}
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="{{ field["name"] }}">{{ field["label"] }}</label>
+                        <input class="form-control {% if field["error"] %} border-danger focus-ring focus-ring-danger {% endif %}"
+                        id="{{ field["name"] }}" type="{{ field["type"] }}" name="{{ field["name"] }}" placeholder="{{ field["placeholder"] }}"
+                        {% if field["value"] %} value="{{ field["value"] }}" {% endif %} {% if loop.index0 == 0 %} autofocus {% endif %} required>
+                    </div>
+                {% endfor %}
+                {% if form["form_type"].casefold() == "login".casefold() %}
+                    <div class="form-group mb-3">
+                        <div id="helpers" class="d-flex justify-content-between">
+                            <a href="{{ url_for("forgot_password") }}">Forgot Password?</a>
+                            <div class="form-check">
+                                <input class="form-check-input border-dark" type="checkbox" value="1" id="stay-logged-in" name="stay-logged-in">
+                                <label class="form-check-label" for="stay-logged-in">
+                                  Keep me signed in
+                                </label>
+                              </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+            <div class="form-group mb-3">
+                <button type="submit" class="form-control btn btn-primary">{{ form["form_button"] }}</button>
+            </div>
+        </form>
+        {% if error %}
+            <ul id="entry-form-errors">
+                {% for err in error %}
+                    <li class="text-danger">{{ error[err] }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% if form["form_type"].casefold() == "login".casefold() %}
+            <p>Don't have an account? <a href="/signup">Sign Up</a></p>
+        {% elif form["form_type"].casefold() == "signup".casefold() %}
+            <p>Already have an account? <a href="login">Log In</a></p>
+        {% endif %}
+    </section>
+{% endblock %}
+
+{% block body_scripts %}
+    <script type="text/javascript" src="../static/js/entry-form.js"></script>
+{% endblock %}
