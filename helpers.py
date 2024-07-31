@@ -1,27 +1,9 @@
-import os, re, requests, sqlite3
+import copy, os, re, requests, sqlite3
 from dotenv import load_dotenv
-from entry_form_fields import username_field, email_field, password_field, new_password_field, confirm_password_field
+from external_variables import EMAIL_PATTERN, PASSWORD_PATTERN, PASSWORD_ERR, DATABASE, OMDB_API_KEY, ENTRY_FORM_FIELDS
 from flask import get_flashed_messages, jsonify, redirect, session
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
-
-# Load env variables
-load_dotenv()
-
-################## Global Variables Start ##################
-DATABASE = os.getenv("DATABASE_NAME")
-# Get API key
-OMDB_API_KEY = os.getenv("OMDB_API_KEY")
-# Regex pattern for simple email matching
-EMAIL_PATTERN = re.compile(
-    r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9]+\.[a-zA-Z0-9-.]+$"
-)
-# Regex pattern for simple password matching
-PASSWORD_PATTERN = re.compile(
-    r"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$"
-)
-PASSWORD_ERR = "Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)."
-################## Global Variables End ##################
 
 def get_db_connection():
     """
@@ -276,6 +258,7 @@ def search_query(query):
     return jsonify(response.json())
 
 
+############### New helper functions ###################
 def create_form(form_type, form_title, form_button, form_action=None):
     """
         Creates a dictionary from the provided form info.
@@ -285,13 +268,6 @@ def create_form(form_type, form_title, form_button, form_action=None):
         - form_action (str): if action is the same route as form, dont include
         - form_button (str): text for submit button
     """
-    # Possible form fields for each entry-form type
-    ENTRY_FORM_FIELDS = {
-        "signup": [username_field, email_field, password_field, confirm_password_field],
-        "login": [email_field, password_field],
-        "forgot": [email_field],
-        "reset": [new_password_field, confirm_password_field],
-    }
     # Basic form dictionary with required fields
     form_info = {
         "form_type": form_type,
@@ -299,8 +275,131 @@ def create_form(form_type, form_title, form_button, form_action=None):
         "form_button": form_button
     }
     
-    form_info["form_fields"] = ENTRY_FORM_FIELDS[form_type]
+    form_info["form_fields"] = [field.copy() for field in ENTRY_FORM_FIELDS[form_type]]
     if form_action:
         form_info["form_action"] = form_action
     
     return form_info
+
+
+def validate_form_data(form_data, form):
+    """
+        Loops over the form_data dictionary-like structure to
+        validate each field. If any field is not validated then
+        add error message to form dictionary
+        Parameters:
+        - form_data (dictionary-like): dictionary like structure of the submitted form data
+        - form (dictionary): the current form dictionary
+    """
+    form_type_fields = form["form_fields"]
+    email = password = None
+    
+    for field in form_type_fields:
+        field_name = field.get("name")
+        # Display flash error message if field is not recognized by form type
+        if field_name not in form_data:
+            # Put flash error message here
+            return
+        # Form field from form_type is in the submitted data
+        form_data_field = form_data.get(field_name)
+        # Get the email to use when validating password
+        if field_name == "email":
+            email = form_data_field
+        # Get the password for the confirm password field
+        if field_name == "password":
+            password = form_data_field
+        # If there was an error validating, the error str will be returned
+        is_not_valid = validate_form_field(field_name, form_data_field, form["form_type"], email, password)
+        if is_not_valid:
+            if "validate_errors" not in form:
+                form["validate_errors"] = []
+            form["validate_errors"].append(is_not_valid)
+            # Displays error classes when form info not validated
+            field["error"] = True
+        # Persist filled out form data
+        if not field_name == "password" and not field_name == "password-confirm":
+            field["value"] = form_data_field
+
+    # Form data is validated
+    if not "validate_errors" in form:
+        # Login user
+        if form["form_type"] == "login":
+            # login_user(form)
+            print("LOGIN")
+        # Sign user up
+        elif form["form_type"] == "signup":
+            # signup_user(form)
+            print("SIGNUP")
+        # Send email to reset password
+        elif form["form_type"] == "forgot":
+            # forgot_password_email(form)
+            print("FORGOT PASSWORD")
+        # Reset password
+        elif form["form_type"] == "reset":
+            # reset_password(form)
+            print("RESET PASSWORD")
+
+
+def validate_form_field(field_name, field_value, type, email, password):
+    """
+        Get connect to database and validate the form field based on form type.
+        If there is an error, return the error string, so it can be added to the
+        forms error array. Otherwise return None
+        Parameters:
+        field_name (str): name of the field
+        field_value (str): value of the field
+        type (str): type of form
+        email (str): the email submitted in the form data
+        password (str): the password entered by the user, used to check confirm password field
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # Username field
+    if field_name == "username":
+        if len(field_value) < 2:
+            conn.close()
+            return "Username must be at least 2 characters"
+        cur.execute("SELECT * FROM users WHERE username = ?", (field_value,))
+        user = cur.fetchone()
+        if user:
+            conn.close()
+            return "Username already exists"
+
+    # Email field
+    elif field_name == "email":
+        if not field_value or not EMAIL_PATTERN.match(field_value):
+            conn.close()
+            return "Not a valid email"
+        # If it's the signup form, check that email is not in use
+        cur.execute("SELECT * FROM users WHERE email = ?", (field_value,))
+        user = cur.fetchone()
+        if type == "signup":
+            if user:
+                conn.close()
+                return "Email already in use"
+        elif not user:
+            conn.close()
+            return "Email not found"
+
+    # Password field
+    elif field_name == "password":
+        if type == "login" and email:
+            cur.execute("SELECT password_hash FROM users WHERE email = ?", (email,))
+            user = cur.fetchone()
+            if user and not check_password_hash(user[0], field_value):
+                conn.close()
+                return "Incorrect password"
+        elif not field_value or not PASSWORD_PATTERN.match(field_value):
+            conn.close()
+            return PASSWORD_ERR
+
+    # Confirm password field
+    elif field_name == "password-confirm" and password:
+        if not field_value or not field_value == password:
+            conn.close()
+            return "Passwords must match"
+
+    # Close database connection
+    conn.close()
+    return

@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_mail import Mail, Message
 from flask_session import Session
-from helpers import create_tables, get_user_id, insert_user_db, login_required, verify_sign_up_data, verify_login_data, get_user, search_query, verify_user_email, get_message_from_flash, verify_password_change, create_form
+from helpers import create_tables, get_user_id, insert_user_db, login_required, verify_sign_up_data, verify_login_data, get_user, search_query, verify_user_email, get_message_from_flash, verify_password_change, create_form, validate_form_data
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from werkzeug.security import generate_password_hash
 import secrets, os
@@ -64,6 +64,11 @@ def index():
 def login():
     """Route for login page"""
     form = create_form("login", "Login", "Login")
+    # User login attempt
+    if request.method == "POST":
+        # Submitted form data
+        form_data = request.form
+        validate_form_data(form_data, form)
     return render_template("entry-forms.html", form=form)
 
 
@@ -71,6 +76,12 @@ def login():
 def signup():
     """Register a new user if validated"""
     form = create_form("signup", "Sign Up", "Sign Up")
+    # Sign up new user
+    if request.method == "POST":
+        # Submitted form data
+        form_data = request.form
+        validate_form_data(form_data, form)
+        print(form)
     return render_template("entry-forms.html", form=form)
 
 
@@ -78,6 +89,12 @@ def signup():
 def forgot_password():
     """Validate email to get password reset link"""
     form = create_form("forgot", "Confirm Email", "Send Reset Link")
+    # Send reset password if email exists as user
+    if request.method == "POST":
+        # Submitted form data
+        form_data = request.form
+        validate_form_data(form_data, form)
+        print(form)
     return render_template("entry-forms.html", form=form)
 
 
@@ -85,6 +102,12 @@ def forgot_password():
 def reset_password():
     """Reset Password form"""
     form = create_form("reset", "Reset Password", "Reset Password")
+    # Reset password
+    if request.method == "POST":
+        # Submitted form data
+        form_data = request.form
+        validate_form_data(form_data, form)
+        print(form)
     return render_template("entry-forms.html", form=form)
 
 

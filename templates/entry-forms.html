@@ -43,10 +43,10 @@
                 <button type="submit" class="form-control btn btn-primary">{{ form["form_button"] }}</button>
             </div>
         </form>
-        {% if error %}
+        {% if form["validate_errors"] %}
             <ul id="entry-form-errors">
-                {% for err in error %}
-                    <li class="text-danger">{{ error[err] }}</li>
+                {% for err in form["validate_errors"] %}
+                    <li class="text-danger">{{ err }}</li>
                 {% endfor %}
             </ul>
         {% endif %}
