@@ -20,9 +20,25 @@
                 {% for field in form["form_fields"] %}
                     <div class="form-group mb-3">
                         <label class="form-label" for="{{ field["name"] }}">{{ field["label"] }}</label>
-                        <input class="form-control {% if field["error"] %} border-danger focus-ring focus-ring-danger {% endif %}"
-                        id="{{ field["name"] }}" type="{{ field["type"] }}" name="{{ field["name"] }}" placeholder="{{ field["placeholder"] }}"
-                        {% if field["value"] %} value="{{ field["value"] }}" {% endif %} {% if loop.index0 == 0 %} autofocus {% endif %} required>
+                        <input 
+                            class="form-control {% if form["validate_errors"] %}{% for error_dict in form["validate_errors"] %}{% if field["name"] in error_dict %}border-danger focus-ring focus-ring-danger{% endif %}{% endfor %}{% endif %}"
+                            id="{{ field["name"] }}"
+                            type="{{ field["type"] }}"
+                            name="{{ field["name"] }}"
+                            placeholder="{{ field["placeholder"] }}"
+                            {% if form.get("values") %}
+                                {% for value_dict in form["values"] %}
+                                    {% for key, value in value_dict.items() %}
+                                        {% if field["name"] == key and not field["type"] == "password" %}
+                                            value="{{ value }}"
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            {% endif %}
+                            {% if loop.index0 == 0 %}
+                                autofocus
+                            {% endif %}
+                            required>
                     </div>
                 {% endfor %}
                 {% if form["form_type"].casefold() == "login".casefold() %}
@@ -45,8 +61,10 @@
         </form>
         {% if form["validate_errors"] %}
             <ul id="entry-form-errors">
-                {% for err in form["validate_errors"] %}
-                    <li class="text-danger">{{ err }}</li>
+                {% for error_dict in form["validate_errors"] %}
+                    {% for err in error_dict.values() %}
+                        <li class="text-danger">{{ err }}</li>
+                    {% endfor %}
                 {% endfor %}
             </ul>
         {% endif %}

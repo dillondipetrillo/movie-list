@@ -69,6 +69,7 @@ def login():
         # Submitted form data
         form_data = request.form
         validate_form_data(form_data, form)
+        print(form)
     return render_template("entry-forms.html", form=form)
 
 
