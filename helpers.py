@@ -268,7 +268,6 @@ def create_form(form_type, form_title, form_button, form_action=None):
         - form_action (str): if action is the same route as form, dont include
         - form_button (str): text for submit button
     """
-
     # Basic form dictionary with required fields
     form_info = {
         "form_type": form_type,
@@ -306,7 +305,8 @@ def validate_form_data(form_data, form):
 
     # Form data is validated
     if not "validate_errors" in form:
-        handle_valid_submission(form_data)
+        handle_valid_submission(form_data, form["form_type"])
+        return True
 
 
 def validate_form_field(form_data, form_field, type):
@@ -372,9 +372,47 @@ def validate_form_field(form_data, form_field, type):
     return
 
 
-def handle_valid_submission(form_data):
+def handle_valid_submission(form_data, form_type):
     """
         Handles a valid form submission depending on form type
         Parameters:
         - form_data (dict): dict object of the submitted form data
+        - form_type (str): type of form dict from list of forms
     """
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # User attempting to login
+    if form_type == "login":
+        # Forget any user session data
+        session.clear()
+        # Get user_id and username
+        cur.execute("SELECT id, username FROM users WHERE email = ?", (form_data["email"],))
+        user = cur.fetchone()
+        conn.close()
+        session["user_id"] = user[0]
+        session["username"] = user[1]
+        # Keep user logged in for 30 days if checkbox is checked
+        if form_data.get("stay-logged-in", None):
+            session.permanent = True
+
+    # User attempting to signup
+    elif form_type == "signup":
+        pw_hash = generate_password_hash(form_data["password"], method="pbkdf2", salt_length=16)
+        cur.execute("""
+            INSERT INTO users
+            (username, email, password_hash)
+            VALUES (?, ?, ?)
+        """, (form_data["username"], form_data["email"], pw_hash))
+        # Get rows inserted
+        if cur.rowcount < 1:
+            conn.close()
+            print("Error signing up user")
+        conn.commit()
+        cur.execute("SELECT id, username FROM users WHERE email = ?", (form_data["email"],))
+        user = cur.fetchone()
+        conn.close()
+        session["user_id"] = user[0]
+        session["username"] = user[1]
+
+    conn.close()

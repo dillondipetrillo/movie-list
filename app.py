@@ -68,9 +68,9 @@ def login():
     if request.method == "POST":
         # Submitted form data
         form_data = request.form
-        validate_form_data(form_data, form)
-        print(form)
-    return render_template("entry-forms.html", form=form)
+        if validate_form_data(form_data, form):
+            return redirect('/')
+    return render_template("entry-forms.html", no_search=True, form=form)
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -81,9 +81,9 @@ def signup():
     if request.method == "POST":
         # Submitted form data
         form_data = request.form
-        validate_form_data(form_data, form)
-        print(form)
-    return render_template("entry-forms.html", form=form)
+        if validate_form_data(form_data, form):
+            return redirect('/')
+    return render_template("entry-forms.html", no_search=True, form=form)
 
 
 @app.route("/forgot-password", methods=["GET", "POST"])
@@ -95,8 +95,7 @@ def forgot_password():
         # Submitted form data
         form_data = request.form
         validate_form_data(form_data, form)
-        print(form)
-    return render_template("entry-forms.html", form=form)
+    return render_template("entry-forms.html", no_search=True, form=form)
 
 
 @app.route("/reset-password", methods=["GET", "POST"])
@@ -108,8 +107,7 @@ def reset_password():
         # Submitted form data
         form_data = request.form
         validate_form_data(form_data, form)
-        print(form)
-    return render_template("entry-forms.html", form=form)
+    return render_template("entry-forms.html", no_search=True, form=form)
 
 
 # @app.route("/signup", methods=["GET", "POST"])
