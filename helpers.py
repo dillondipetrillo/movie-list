@@ -1,7 +1,7 @@
 import copy, os, re, requests, sqlite3
 from dotenv import load_dotenv
-from external_variables import EMAIL_PATTERN, PASSWORD_PATTERN, PASSWORD_ERR, DATABASE, OMDB_API_KEY, ENTRY_FORM_FIELDS
-from flask import get_flashed_messages, jsonify, redirect, session
+from external_variables import EMAIL_PATTERN, FLASH_KEY, PASSWORD_PATTERN, PASSWORD_ERR, DATABASE, OMDB_API_KEY, ENTRY_FORM_FIELDS
+from flask import flash, get_flashed_messages, jsonify, redirect, session
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -304,9 +304,9 @@ def validate_form_data(form_data, form):
         form["values"].append({field: value})
 
     # Form data is validated
-    if not "validate_errors" in form:
-        handle_valid_submission(form_data, form["form_type"])
-        return True
+    if "validate_errors" in form:
+        return False
+    return handle_valid_submission(form_data, form["form_type"])
 
 
 def validate_form_field(form_data, form_field, type):
@@ -408,6 +408,7 @@ def handle_valid_submission(form_data, form_type):
         if cur.rowcount < 1:
             conn.close()
             print("Error signing up user")
+            return False
         conn.commit()
         cur.execute("SELECT id, username FROM users WHERE email = ?", (form_data["email"],))
         user = cur.fetchone()
@@ -415,4 +416,21 @@ def handle_valid_submission(form_data, form_type):
         session["user_id"] = user[0]
         session["username"] = user[1]
 
+    # User is attempting to change passwords
+    elif form_type == "reset":
+        # Make sure new password is not same as the old one
+        cur.execute("SELECT password_hash FROM users WHERE email = ?", (form_data["email"],))
+        user_pw = cur.fetchone()
+        if check_password_hash(user_pw[0], form_data["password"]):
+            conn.close()
+            return False
+        new_pw_hash = generate_password_hash(
+            form_data["password"],
+            method="pbkdf2",
+            salt_length=16)
+        cur.execute("UPDATE users SET password_hash = ? WHERE email = ?", (new_pw_hash, form_data["email"]))
+        conn.commit()
+        conn.close()
+
     conn.close()
+    return True

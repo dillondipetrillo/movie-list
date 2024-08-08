@@ -22,6 +22,9 @@ OMDB_API_KEY = os.getenv("OMDB_API_KEY")
 # String for error for not matching password requirements
 PASSWORD_ERR = "Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)."
 
+# Global variable for setting flash message key
+FLASH_KEY = "flash_key" 
+
 ################## Form Fields Start ##################
 username_field = {
     "name": "username",

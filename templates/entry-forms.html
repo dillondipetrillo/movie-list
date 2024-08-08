@@ -7,8 +7,10 @@
 {% block main %}
     <section class="enter-form border rounded p-3 mx-auto shadow">
         <h1>{{ form["form_title"] if form["form_title"] else "MovieList Form" }}</h1>
-        {% if reset_success %}
-            <p class="text-success bg-success bg-opacity-10 border-success border-opacity-10 rounded-2 py-2 px-3">{{ reset_success }}</p>
+        {% if success %}
+            <p class="text-success bg-success bg-opacity-10 border-success border-opacity-10 rounded-2 py-2 px-3">{{ success }}</p>
+        {% elif error %}
+        <p class="text-danger bg-danger bg-opacity-10 border-danger border-opacity-10 rounded-2 py-2 px-3">{{ error }}</p>
         {% endif %}
         {% if form["form_type"] == "forgot" %}
             <p>Enter your email address below, and we'll send you a link to reset your password</p>

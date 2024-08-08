@@ -70,7 +70,11 @@ def login():
         form_data = request.form
         if validate_form_data(form_data, form):
             return redirect('/')
-    return render_template("entry-forms.html", no_search=True, form=form)
+    return render_template(
+        "entry-forms.html",
+        no_search=True,
+        form=form,
+        success=get_message_from_flash(session.pop(FLASH_KEY, None)))
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -94,20 +98,49 @@ def forgot_password():
     if request.method == "POST":
         # Submitted form data
         form_data = request.form
-        validate_form_data(form_data, form)
-    return render_template("entry-forms.html", no_search=True, form=form)
+        if validate_form_data(form_data, form):
+            token = s.dumps(form_data["email"], salt="email-confirm")
+            msg = Message("MovieList Password Reset Request", sender=os.getenv("EMAIL"), recipients=[form_data["email"]])
+            link = url_for("reset_password", token=token, _external=True)
+            msg.body = f"Your password reset link is {link}"
+            try:
+                mail.send(msg)
+                session[FLASH_KEY] = "success"
+                flash("Password reset link has been sent to your email", session.get(FLASH_KEY))
+                return redirect(url_for("login"))
+            except:
+                session[FLASH_KEY] = "error"
+                flash("Error sending email. Please try again.", session.get(FLASH_KEY))
+
+    return render_template("entry-forms.html",
+        no_search=True,
+        form=form,
+        error=get_message_from_flash(session.pop(FLASH_KEY, None)))
 
 
-@app.route("/reset-password", methods=["GET", "POST"])
-def reset_password():
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
     """Reset Password form"""
+    try:
+        email = s.loads(token, salt="email-confirm", max_age=900)
+    except SignatureExpired:
+        session[FLASH_KEY] = "error"
+        flash("The reset link has expired. Please enter email again.", session.get(FLASH_KEY))
+        return redirect("/forgot-password")
+
     form = create_form("reset", "Reset Password", "Reset Password")
     # Reset password
     if request.method == "POST":
         # Submitted form data
-        form_data = request.form
-        validate_form_data(form_data, form)
-    return render_template("entry-forms.html", no_search=True, form=form)
+        form_data = request.form.to_dict()
+        form_data["email"] = email
+        # if validate_form_data(form_data, form):
+            
+
+    return render_template("entry-forms.html",
+        no_search=True,
+        form=form,
+        token=token)
 
 
 # @app.route("/signup", methods=["GET", "POST"])
