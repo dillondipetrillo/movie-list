@@ -1,5 +1,5 @@
-import os, re
 from dotenv import load_dotenv
+import os, re
 
 load_dotenv()
 
