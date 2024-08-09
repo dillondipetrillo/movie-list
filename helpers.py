@@ -1,4 +1,4 @@
-from external_variables import DATABASE, EMAIL_PATTERN, ENTRY_FORM_FIELDS, OMDB_API_KEY, PASSWORD_ERR, PASSWORD_PATTERN
+from external_variables import DATABASE, EMAIL_PATTERN, ENTRY_FORM_FIELDS, TMDB_API_KEY, PASSWORD_ERR, PASSWORD_PATTERN
 from flask import jsonify, redirect, session
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -258,5 +258,5 @@ def handle_valid_submission(form_data, form_type):
 
 def search_query(query):
     """Makes call to api to get list of movies."""
-    response = requests.get(f"https://www.omdbapi.com/?apikey={OMDB_API_KEY}&type=movie&s={query}")
+    response = requests.get(f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={query}&include_adult=false&language=en-US&page=1")
     return jsonify(response.json())

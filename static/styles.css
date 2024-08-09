@@ -21,8 +21,19 @@
     margin-left: calc(var(--bs-gutter-x) * 0.5);
 }
 
+/* To make sure the movie overview text doesn't add height to movie in search bar */
+.search-bar-overview {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1; /* Change this number to show more lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
 .result-img-wrapper {
     max-width: 3.5rem;
+    min-width: 3.5rem;
     height: 5rem;
 }
 
@@ -33,7 +44,6 @@
 }
 
 .search-result {
-    /* background-color: white; */
     transition: background-color 0.5s ease;
 }
 

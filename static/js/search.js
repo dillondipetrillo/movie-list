@@ -8,12 +8,10 @@ const searchBarContainer = document.getElementById("search-bar-container");
 // Wrapper for search bar results on search results page
 const searchPageWrapper = document.getElementById("search-results-wrapper");
 const searchValue = document.getElementById("search-value");
-// Array to keep track of imdbIDs to catch duplicates
-let movieIDs = [];
 /* This value is to keep track of what was searched for when search bar is 
 unfocused. If when it's focused again and its value is the same as this value, 
 no need to recall api */
-let searchedMovie = null;
+let searchedValue = null;
 
 /**
  * Fetch search results by similar movie title
@@ -21,20 +19,16 @@ let searchedMovie = null;
  * @param parentContainer the parent html element the results will be appended to
  */
 const fetchSearchResult = (query, parentContainer) => {
-    fetch(`/results?q=${encodeURIComponent(query)}&type=s`)
+    fetch(`/search-results?q=${encodeURIComponent(query)}`)
     .then(response => { if (response.ok) return response.json(); })
     .then(data => {
-        let result;
-        if (data.Search) {
-            result = data.Search;
-        } else if (data.Error === "Too many results.") {
-            result = {
-                Error: `${data.Error} Please be more specific.`,
-            }
+        let results;
+        if (data.results.length) {
+            results = data.results;
         } else {
-            result = { Error: data.Error, };
+            results = { Error: `Could not find the movie '${query}'`, };
         }
-        buildSearchBarResults(result, parentContainer);
+        buildSearchBarResults(results, parentContainer);
     })
     .catch(error => {
         console.log(error);
@@ -48,8 +42,6 @@ const fetchSearchResult = (query, parentContainer) => {
  */
 const buildSearchBarResults = async (results, parentContainer) => {
     clearSearchResults();
-    movieIDs = [];
-    let index = 0;
     parentContainer.classList.contains("d-none") ? parentContainer.classList.remove("d-none") : null;
 
     // Start build of search result elements
@@ -59,11 +51,7 @@ const buildSearchBarResults = async (results, parentContainer) => {
         p.classList.add("mb-0", "px-2", "py-3", "search-result", "rounded");
         parentContainer.append(p);
     } else {
-        for (const movie of results) {
-            // Prevent duplicate movies
-            if (movieIDs.includes(movie.imdbID)) continue;
-            movieIDs[index] = movie.imdbID;
-
+        results.forEach((movie, index) => {
             const movieLink = document.createElement("a");
             const leftContainer = document.createElement("div");
             const rightContainer = document.createElement("div");
@@ -71,13 +59,14 @@ const buildSearchBarResults = async (results, parentContainer) => {
             const moviePoster = document.createElement("img");
             const movieTitle = document.createElement('p');
             const movieYear = document.createElement('p');
+            const movieOverview = document.createElement('p');
 
-            movieLink.classList.add("search-result", "container-fluid", "p-2", "d-flex", "border-bottom", "text-decoration-none");
+            movieLink.classList.add("search-result", "container-fluid", "p-2", "d-flex", "border-bottom", "text-decoration-none", "link-dark");
             if (results.length === 1)
                 movieLink.classList.add("rounded");
             if (index === 0)
                 movieLink.classList.add("rounded-top");
-            if (index++ === results.length - 1) {
+            if (index === results.length - 1) {
                 movieLink.classList.add("rounded-bottom");
                 movieLink.classList.remove("border-bottom")
             }
@@ -85,23 +74,26 @@ const buildSearchBarResults = async (results, parentContainer) => {
             rightContainer.classList.add("result-right", "py-1");
             moviePosterContainer.classList.add("result-img-wrapper");
             moviePoster.classList.add("result-img");
-            movieTitle.classList.add("result-title", "mb-0", "fw-bold", "text-dark");
-            movieYear.classList.add("result-year", "text-muted", "mb-0");
+            movieTitle.classList.add("result-title", "mb-0", "fw-bold");
+            movieYear.classList.add("result-year", "opacity-50", "mb-0");
+            movieOverview.classList.add("search-bar-overview");
 
-            if (movie.Poster !== "N/A")
-                moviePoster.src = movie.Poster;
+            if (movie.poster_path)
+                moviePoster.src = `https://image.tmdb.org/t/p/w92${movie.poster_path}`;
             else
                 moviePoster.src = "/static/imgs/image-not-found-vector.jpg";
-            movieTitle.textContent = movie.Title;
-            movieYear.textContent = movie.Year;
-            movieLink.href = `/movie?id=${movie.imdbID}`;
+            movieTitle.textContent = movie.original_title;
+            // Format date
+            movieYear.textContent = movie.release_date.slice(0,4) || '';
+            movieLink.href = `/movie?id=${movie.id}`;
+            movieOverview.textContent = movie.overview;
 
             moviePosterContainer.append(moviePoster);
             leftContainer.append(moviePosterContainer);
-            rightContainer.append(movieTitle, movieYear);
+            rightContainer.append(movieTitle, movieYear, movieOverview);
             movieLink.append(leftContainer, rightContainer);
             parentContainer.append(movieLink);
-        }
+        })
     }
 }
 
@@ -112,18 +104,17 @@ const clearSearchResults = () => {
 }
 
 /* Event Listeners */
-
 let timeout = null;
 searchbar.addEventListener("input", () => {
     if (!searchbar.value) {
         clearSearchResults();
         clearTimeout(timeout);
-        searchedMovie = null;
+        searchedValue = null;
         return;
     }
     clearTimeout(timeout);
     let query = searchbar.value;
-    searchedMovie = query;
+    searchedValue = query;
 
     timeout = setTimeout(() => {
         fetchSearchResult(query, searchResultsContainer);
@@ -135,7 +126,7 @@ closeMobileSearchBar.addEventListener("click", () => {
     if (searchBarContainer.classList.contains("sticky-search-open"))
         searchBarContainer.classList.remove("sticky-search-open");
     searchbar.value = '';
-    searchedMovie = null;
+    searchedValue = null;
     clearSearchResults();
 })
 
@@ -150,7 +141,7 @@ document.addEventListener("click", (event) => {
 // Reopens closed search bar results when search bar is focused
 searchbar.addEventListener("focus", () => {
     if (!searchbar.value) return;
-    if (searchbar.value === searchedMovie
+    if (searchbar.value === searchedValue
     && searchResultsContainer.classList.contains("d-none")) {
         searchResultsContainer.classList.remove("d-none");
     }
