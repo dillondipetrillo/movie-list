@@ -17,7 +17,7 @@ PASSWORD_PATTERN = re.compile(
 DATABASE = os.getenv("DATABASE_NAME")
 
 # API key from environment variable
-OMDB_API_KEY = os.getenv("OMDB_API_KEY")
+TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 
 # String for error for not matching password requirements
 PASSWORD_ERR = "Password must be at least 7 characters and contain at least one uppercase letter, digit, and special character(@$!%*?&)."
