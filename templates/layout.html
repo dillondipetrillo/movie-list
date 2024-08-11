@@ -103,10 +103,9 @@
         <main class="container-fluid app-max-width">
             {% block main %}{% endblock %}
         </main>
-        {% block body_scripts %}
-            {% if not no_search %}
-                <script type="text/javascript" src="../static/js/search.js"></script>
-            {% endif %}
-        {% endblock %}
+        {% if not no_search %}
+            <script type="text/javascript" src="../static/js/search.js"></script>
+        {% endif %}
+        {% block body_scripts %}{% endblock %}
     </body>
 </html>
