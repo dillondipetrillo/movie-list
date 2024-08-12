@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Movie Info
+{% endblock %}
+
+{% block style %}
+    <style>
+        .mask.full-2,
+        .circle .fill-2 {
+            transform: rotate({{ movie.circle_fill }}deg);
+        }
+    </style>
+{% endblock %}
+
+{% block main %}
+    <div class="movie-header">
+        <div class="poster-wrapper">
+            <div class="poster">
+                <img class="poster-img" id="poster-img" src="{% if movie.poster %}https://image.tmdb.org/t/p/w300_and_h450_bestv2{{ movie.poster }}{% else %}../static/imgs/image-not-found-vector.jpg{% endif %}" />
+            </div>
+        </div>
+        <div>
+            <h1>{{ movie.title}} {% if movie.release_year %}({{ movie.release_year }}){% endif %}</h1>
+            <div class="movie-facts">
+                {% for fact in movie.facts %}
+                    {% if loop.index > 1 %}
+                        <span>&#8226;</span>
+                    {% endif %}
+                    <span>{{ fact }}</span>
+                {% endfor %}
+            </div>
+            <div class="genres">
+                {{ movie.genres | join(", ") }}
+            </div>
+            <div class="circle-wrap">
+                <div class="circle">
+                  <div class="mask full-2">
+                    <div class="fill-2"></div>
+                  </div>
+                  <div class="mask half">
+                    <div class="fill-2"></div>
+                  </div>
+                  <div class="inside-circle">{{ movie.percentage }}%</div>
+                </div>
+              </div>
+        </div>
+    </div>
+{% endblock %}
