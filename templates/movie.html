@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block main %}
-    <div class="movie-header">
+    <div class="movie-header d-flex">
         <div class="poster-wrapper">
             <div class="poster">
                 <img class="poster-img" id="poster-img" src="{% if movie.poster %}https://image.tmdb.org/t/p/w300_and_h450_bestv2{{ movie.poster }}{% else %}../static/imgs/image-not-found-vector.jpg{% endif %}" />
@@ -35,15 +35,20 @@
             </div>
             <div class="circle-wrap">
                 <div class="circle">
-                  <div class="mask full-2">
-                    <div class="fill-2"></div>
-                  </div>
-                  <div class="mask half">
-                    <div class="fill-2"></div>
-                  </div>
-                  <div class="inside-circle">{{ movie.percentage }}%</div>
+                    <div class="mask full-2">
+                        <div class="fill-2 bg-primary"></div>
+                    </div>
+                    <div class="mask half">
+                        <div class="fill-2 bg-primary"></div>
+                    </div>
+                    <div class="inside-circle bg-dark">{{ movie.percentage }}%</div>
                 </div>
-              </div>
+            </div>
+            <p>{{ movie.tagline }}</p>
+            <div class="overview">
+                <h2>Overview</h2>
+                <p>{{ movie.overview }}</p>
+            </div>
         </div>
     </div>
 {% endblock %}

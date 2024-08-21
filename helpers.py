@@ -337,4 +337,6 @@ def format_movie_info(movie_info, release_info):
         "circle_fill": circle_fill if circle_fill else 0,
         "release_year": release_year if release_year else '',
         "country": country if country else '',
+        "tagline": movie_info.get("tagline", ''),
+        "overview": movie_info.get("overview", ''),
     }

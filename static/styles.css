@@ -100,7 +100,6 @@ a.search-result:hover {
   width: 124px;
   height: 124px;
   border-radius: 50%;
-  background: #212020;
   line-height: 120px;
   text-align: center;
   margin-top: 13px;
@@ -113,7 +112,6 @@ a.search-result:hover {
 
 .mask .fill-2 {
   clip: rect(0px, 75px, 150px, 0px);
-  background-color: yellow;
 }
 
 /* For medium screen (tablet) styles */
