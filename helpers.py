@@ -277,7 +277,13 @@ def get_movie_release_info(id):
     return response.json()
 
 
-def format_movie_info(movie_info, release_info):
+def get_cast_info(id):
+    """Get the cast list and director for movie"""
+    response = requests.get(f"https://api.themoviedb.org/3/movie/{id}/credits?api_key={TMDB_API_KEY}&include_adult=false&language=en-US")
+    return response.json()
+
+
+def format_movie_info(movie_info, release_info, cast_info):
     """Creates dictionary for all required movie info"""
     # Build info that needs certain formatting, ex: rating, dates
     rating = release_year = release_date = country = runtime_str = percentage = circle_fill = None
@@ -324,19 +330,25 @@ def format_movie_info(movie_info, release_info):
             genres.append(genre.get("name"))
 
     # Get user vote percentage of movie
-    if movie_info.get("vote_average"):
-        percentage = int(movie_info.get("vote_average") * 10)
-        circle_fill = int((percentage / 100) * 180)
+    percentage = int(movie_info.get("vote_average") * 10)
+    circle_fill = int((percentage / 100) * 180)
+
+    # Get director
+    crew = cast_info.get("crew")
+    director = next((person for person in crew if person.get("job") and person["job"] == "Director"), None)
 
     return {
         "title": movie_info.get("original_title", ''),
         "poster": movie_info.get("poster_path", None),
         "genres": genres if genres else '',
         "facts": facts,
-        "percentage": percentage if percentage else '',
+        "percentage": percentage,
+        "vote_count": movie_info.get("vote_count"),
         "circle_fill": circle_fill if circle_fill else 0,
         "release_year": release_year if release_year else '',
         "country": country if country else '',
         "tagline": movie_info.get("tagline", ''),
         "overview": movie_info.get("overview", ''),
+        "director": director.get("name", "Not listed"),
+        "cast_list": cast_info.get("cast"),
     }

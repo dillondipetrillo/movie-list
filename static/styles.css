@@ -114,6 +114,14 @@ a.search-result:hover {
   clip: rect(0px, 75px, 150px, 0px);
 }
 
+.cast-member {
+  width: 9.5rem;
+}
+
+.cast-name * {
+  font-size: .95rem;
+}
+
 /* For medium screen (tablet) styles */
 @media (max-width: 768px) {
   .sticky-search {
@@ -149,5 +157,16 @@ a.search-result:hover {
 
   .search-container-margin {
     margin: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .movie-header {
+    flex-direction: column-reverse;
+    margin-bottom: 1rem;
+  }
+
+  .poster-img {
+    max-height: 200px;
   }
 }

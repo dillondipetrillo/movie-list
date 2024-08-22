@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask, flash, get_flashed_messages, redirect, render_template, request, session, url_for
 from flask_mail import Mail, Message
 from flask_session import Session
-from helpers import create_form, create_tables, format_movie_info, get_movie_info, is_logged_in, login_required, get_movie_release_info, search_query, validate_form_data
+from helpers import create_form, create_tables, format_movie_info, get_cast_info, get_movie_info, is_logged_in, login_required, get_movie_release_info, search_query, validate_form_data
 from itsdangerous import SignatureExpired, URLSafeTimedSerializer
 import os, secrets
 
@@ -149,7 +149,8 @@ def movie():
     movie_id = request.args.get("id")
     movie_info = get_movie_info(movie_id)
     release_info = get_movie_release_info(movie_id)
-    formatted_movie_info = format_movie_info(movie_info, release_info)
+    cast_info = get_cast_info(movie_id)
+    formatted_movie_info = format_movie_info(movie_info, release_info, cast_info)
     return render_template("movie.html", movie=formatted_movie_info)
 
 

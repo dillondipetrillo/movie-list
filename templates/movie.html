@@ -14,10 +14,10 @@
 {% endblock %}
 
 {% block main %}
-    <div class="movie-header d-flex">
+    <div class="movie-header d-flex gap-4">
         <div class="poster-wrapper">
             <div class="poster">
-                <img class="poster-img" id="poster-img" src="{% if movie.poster %}https://image.tmdb.org/t/p/w300_and_h450_bestv2{{ movie.poster }}{% else %}../static/imgs/image-not-found-vector.jpg{% endif %}" />
+                <img class="poster-img rounded" id="poster-img" src="{% if movie.poster %}https://image.tmdb.org/t/p/w300_and_h450_bestv2{{ movie.poster }}{% else %}../static/imgs/image-not-found-vector.jpg{% endif %}" />
             </div>
         </div>
         <div>
@@ -33,7 +33,7 @@
             <div class="genres">
                 {{ movie.genres | join(", ") }}
             </div>
-            <div class="circle-wrap">
+            <div class="circle-wrap my-3">
                 <div class="circle">
                     <div class="mask full-2">
                         <div class="fill-2 bg-primary"></div>
@@ -41,14 +41,38 @@
                     <div class="mask half">
                         <div class="fill-2 bg-primary"></div>
                     </div>
-                    <div class="inside-circle bg-dark">{{ movie.percentage }}%</div>
+                    <div class="inside-circle bg-dark">
+                        {% if movie.vote_count %}
+                            {{ movie.percentage }}%
+                        {% else %}
+                            NR
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-            <p>{{ movie.tagline }}</p>
+            {% if not movie.tagline == '' %}<p>{{ movie.tagline }}</p>{% endif %}
             <div class="overview">
                 <h2>Overview</h2>
                 <p>{{ movie.overview }}</p>
             </div>
+            <div class="overview">
+                <h3>Director</h3>
+                <p>{{ movie.director }}</p>
+            </div>
+        </div>
+    </div>
+    <div>
+        <h2>Cast</h2>
+        <div class="cast-info d-flex flex-wrap gap-3">
+            {% for person in movie.cast_list %}
+                <div class="card cast-member">
+                    <img class="card-img-top" src="{% if person.profile_path %}https://image.tmdb.org/t/p/w138_and_h175_face{{ person.profile_path }}{% else %}../static/imgs/image-not-found-vector.jpg{% endif %}" alt="Card image cap">
+                    <div class="card-body cast-name">
+                        <h5 class="card-title">{{ person.name }}</h5>
+                        <p class="card-text opacity-50">{{ person.character }}</p>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
     </div>
 {% endblock %}
