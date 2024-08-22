@@ -5,10 +5,10 @@
 {% endblock %}
 
 {% block main %}
-    <h1>Home page</h1>
+    <h1>Saved Movies</h1>
     {% if user.username %}
         <p>Hello, {{ user.username }}</p>
     {% elif not user.username %}
-        <p>Hello There</p>
+        <p>Please login to save movies here</p>
     {% endif %}
 {% endblock %}

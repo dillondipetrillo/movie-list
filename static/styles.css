@@ -19,6 +19,7 @@
     margin-top: .25rem;
     margin-right: calc(var(--bs-gutter-x) * 0.5);
     margin-left: calc(var(--bs-gutter-x) * 0.5);
+    z-index: 100;
 }
 
 /* To make sure the movie overview text doesn't add height to movie in search bar */
@@ -76,6 +77,51 @@ a.search-result:hover {
   max-width: 450px;
 }
 
+.circle-wrap {
+  width: 150px;
+  height: 150px;
+  background: #d9d7da;
+  border-radius: 50%;
+}
+
+.circle-wrap .circle .mask,
+.circle-wrap .circle .fill-2 {
+  width: 150px;
+  height: 150px;
+  position: absolute;
+  border-radius: 50%;
+}
+
+.circle-wrap .circle .mask {
+  clip: rect(0px, 150px, 150px, 75px);
+}
+
+.circle-wrap .inside-circle {
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  line-height: 120px;
+  text-align: center;
+  margin-top: 13px;
+  margin-left: 13px;
+  color: white;
+  position: absolute;
+  font-weight: 700;
+  font-size: 2em;
+}
+
+.mask .fill-2 {
+  clip: rect(0px, 75px, 150px, 0px);
+}
+
+.cast-member {
+  width: 9.5rem;
+}
+
+.cast-name * {
+  font-size: .95rem;
+}
+
 /* For medium screen (tablet) styles */
 @media (max-width: 768px) {
   .sticky-search {
@@ -111,5 +157,16 @@ a.search-result:hover {
 
   .search-container-margin {
     margin: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .movie-header {
+    flex-direction: column-reverse;
+    margin-bottom: 1rem;
+  }
+
+  .poster-img {
+    max-height: 200px;
   }
 }

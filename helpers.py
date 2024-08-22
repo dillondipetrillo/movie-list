@@ -257,6 +257,98 @@ def handle_valid_submission(form_data, form_type):
 
 
 def search_query(query):
-    """Makes call to api to get list of movies."""
+    """Makes call to api to get list of movies"""
     response = requests.get(f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={query}&include_adult=false&language=en-US&page=1")
     return jsonify(response.json())
+
+
+def get_movie_info(id):
+    """Returns individual movie info based on IMDB id"""
+    response = requests.get(f"https://api.themoviedb.org/3/movie/{id}?api_key={TMDB_API_KEY}&include_adult=false&language=en-US")
+    return response.json()
+
+
+def get_movie_release_info(id):
+    """
+        Get release date info for individual movie based on IMDB id
+        Only use US info
+    """
+    response = requests.get(f"https://api.themoviedb.org/3/movie/{id}/release_dates?api_key={TMDB_API_KEY}")
+    return response.json()
+
+
+def get_cast_info(id):
+    """Get the cast list and director for movie"""
+    response = requests.get(f"https://api.themoviedb.org/3/movie/{id}/credits?api_key={TMDB_API_KEY}&include_adult=false&language=en-US")
+    return response.json()
+
+
+def format_movie_info(movie_info, release_info, cast_info):
+    """Creates dictionary for all required movie info"""
+    # Build info that needs certain formatting, ex: rating, dates
+    rating = release_year = release_date = country = runtime_str = percentage = circle_fill = None
+    facts = []
+    genres = []
+
+    us_release_info = next((item for item in release_info["results"] if item["iso_3166_1"] == "US"), None)
+    if us_release_info:
+        us_data = us_release_info["release_dates"][1] if len(us_release_info["release_dates"]) > 1 else us_release_info["release_dates"][0]
+        year = us_data["release_date"][:4]
+        month = us_data["release_date"][5:7]
+        day = us_data["release_date"][8:10]
+        if us_data.get("certification"):
+            rating = us_data.get("certification")
+            facts.append(rating)
+        release_year = year
+        release_date = f"{month}/{day}/{year}"
+        facts.append(release_date)
+        country = us_release_info.get("iso_3166_1")
+    else:
+        release = movie_info.get("release_date")
+        release_year = release[:4]
+        year = release[:4]
+        month = release[5:7]
+        day = release[8:10]
+        release_date = f"{month}/{day}/{year}"
+        facts.append(release_date)
+
+    # Get runtime in hours and minutes
+    minutes = movie_info.get("runtime")
+    hours = minutes // 60
+    minutes = minutes % 60
+    if hours > 0 and minutes > 0:
+        runtime_str = f"{hours}h {minutes}m"
+    elif hours > 0:
+        runtime_str = f"{hours}h"
+    else:
+        runtime_str = f"{minutes}m"
+    facts.append(runtime_str)
+
+    # Build genres array
+    if movie_info.get("genres"):
+        for genre in movie_info.get("genres"):
+            genres.append(genre.get("name"))
+
+    # Get user vote percentage of movie
+    percentage = int(movie_info.get("vote_average") * 10)
+    circle_fill = int((percentage / 100) * 180)
+
+    # Get director
+    crew = cast_info.get("crew")
+    director = next((person for person in crew if person.get("job") and person["job"] == "Director"), None)
+
+    return {
+        "title": movie_info.get("original_title", ''),
+        "poster": movie_info.get("poster_path", None),
+        "genres": genres if genres else '',
+        "facts": facts,
+        "percentage": percentage,
+        "vote_count": movie_info.get("vote_count"),
+        "circle_fill": circle_fill if circle_fill else 0,
+        "release_year": release_year if release_year else '',
+        "country": country if country else '',
+        "tagline": movie_info.get("tagline", ''),
+        "overview": movie_info.get("overview", ''),
+        "director": director.get("name", "Not listed"),
+        "cast_list": cast_info.get("cast"),
+    }
