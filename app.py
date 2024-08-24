@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask, flash, get_flashed_messages, redirect, render_template, request, session, url_for
 from flask_mail import Mail, Message
 from flask_session import Session
-from helpers import create_form, create_tables, format_movie_info, get_cast_info, get_movie_info, is_logged_in, login_required, get_movie_release_info, search_query, validate_form_data
+from helpers import create_form, create_tables, format_movie_info, get_cast_info, get_movie_info, is_logged_in, login_required, get_movie_release_info, save_movie, search_query, validate_form_data
 from itsdangerous import SignatureExpired, URLSafeTimedSerializer
 import os, secrets
 
@@ -165,5 +165,13 @@ def results():
 @app.route("/search")
 def search():
     """Search results page"""
-    query = request.args.get("q", "")
+    query = request.args.get("q", '')
     return render_template("search.html", q=query)
+
+
+@app.route("/save-movie")
+def save():
+    """Endpoint to save movie to WatchList"""
+    movie_id = request.args.get("id")
+    if movie_id:
+        return save_movie(movie_id)

@@ -30,21 +30,11 @@ def create_tables():
     """)
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS movies (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            genre TEXT,
-            year INTEGER
-        );
-    """)
-
-    cur.execute("""
         CREATE TABLE IF NOT EXISTS user_movies (
             user_id INTEGER,
             movie_id INTEGER,
             PRIMARY KEY (user_id, movie_id),
-            FOREIGN KEY (user_id) REFERENCES users (id),
-            FOREIGN KEY (movie_id) REFERENCES movies (id)
+            FOREIGN KEY (user_id) REFERENCES users (id)
         );
     """)
 
@@ -256,6 +246,10 @@ def handle_valid_submission(form_data, form_type):
     return True
 
 
+def save_movie(movie_id):
+    """Saves movie to users list"""
+
+
 def search_query(query):
     """Makes call to api to get list of movies"""
     response = requests.get(f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={query}&include_adult=false&language=en-US&page=1")
@@ -339,6 +333,7 @@ def format_movie_info(movie_info, release_info, cast_info):
 
     return {
         "title": movie_info.get("original_title", ''),
+        "id": movie_info.get("id", ''),
         "poster": movie_info.get("poster_path", None),
         "genres": genres if genres else '',
         "facts": facts,

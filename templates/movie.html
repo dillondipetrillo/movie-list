@@ -33,22 +33,31 @@
             <div class="genres">
                 {{ movie.genres | join(", ") }}
             </div>
-            <div class="circle-wrap my-3">
-                <div class="circle">
-                    <div class="mask full-2">
-                        <div class="fill-2 bg-primary"></div>
-                    </div>
-                    <div class="mask half">
-                        <div class="fill-2 bg-primary"></div>
-                    </div>
-                    <div class="inside-circle bg-dark">
-                        {% if movie.vote_count %}
-                            {{ movie.percentage }}%
-                        {% else %}
-                            NR
-                        {% endif %}
+            <div class="d-flex align-items-center gap-4">
+                <div class="circle-wrap my-3">
+                    <div class="circle">
+                        <div class="mask full-2">
+                            <div class="fill-2 bg-primary"></div>
+                        </div>
+                        <div class="mask half">
+                            <div class="fill-2 bg-primary"></div>
+                        </div>
+                        <div class="inside-circle bg-dark">
+                            {% if movie.vote_count %}
+                                {{ movie.percentage }}%
+                            {% else %}
+                                NR
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
+                <button type="button"
+                    class="btn btn-primary"
+                    id="movie-btn"
+                    data-type="save"
+                    data-id="{{ movie.id }}">
+                        Save to List
+                </button>
             </div>
             {% if not movie.tagline == '' %}<p>{{ movie.tagline }}</p>{% endif %}
             <div class="overview">
@@ -75,4 +84,8 @@
             {% endfor %}
         </div>
     </div>
+{% endblock %}
+
+{% block body_scripts %}
+    <script type="text/javascript" src="../static/js/movie-btn.js"></script>
 {% endblock %}
