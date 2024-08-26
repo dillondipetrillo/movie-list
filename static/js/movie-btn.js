@@ -10,9 +10,15 @@ if (movieBtn) {
             fetch(`/save-movie?id=${movieId}`, {
                 method: "POST"
             })
-            .then(response => {{
-                console.log(response);
-            }})
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    console.error("Error saving movie");
+                }
+            })
+            .catch(error => console.error("Error:", error));
         }
         // Remove movie from list
         else if (movieBtn.dataset.type === "remove") {

@@ -14,6 +14,13 @@
 {% endblock %}
 
 {% block main %}
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <p class="text-{{ category }} bg-{{ category }} bg-opacity-10 border-{{ category }} border-opacity-10 rounded-2 py-2 px-3">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
     <div class="movie-header d-flex gap-4">
         <div class="poster-wrapper">
             <div class="poster">

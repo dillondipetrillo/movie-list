@@ -1,5 +1,5 @@
-from external_variables import DATABASE, EMAIL_PATTERN, ENTRY_FORM_FIELDS, TMDB_API_KEY, PASSWORD_ERR, PASSWORD_PATTERN
-from flask import jsonify, redirect, session
+from external_variables import DATABASE, EMAIL_PATTERN, ENTRY_FORM_FIELDS, FLASH_KEY, TMDB_API_KEY, PASSWORD_ERR, PASSWORD_PATTERN
+from flask import flash, get_flashed_messages, jsonify, redirect, session
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 import requests, sqlite3
@@ -248,6 +248,30 @@ def handle_valid_submission(form_data, form_type):
 
 def save_movie(movie_id):
     """Saves movie to users list"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # Get user id
+    user_id = session.get("user_id")
+    if not user_id:
+        session[FLASH_KEY] = "danger"
+        flash("Must be logged in to save movie.", session.get(FLASH_KEY))
+        return
+
+    # Check if movie is already saved
+    cur.execute("SELECT * FROM user_movies WHERE user_id = ? AND movie_id = ?", (user_id, movie_id))
+    movie = cur.fetchone()
+    if movie:
+        session[FLASH_KEY] = "danger"
+        flash("Movie already saved.", session.get(FLASH_KEY))
+    else:
+        # Insert movie into database
+        cur.execute("INSERT INTO user_movies (user_id, movie_id) VALUES (?, ?)", (user_id, movie_id))
+        conn.commit()
+        session[FLASH_KEY] = "success"
+        flash("Successfully saved movie!", session.get(FLASH_KEY))
+
+    conn.close()
 
 
 def search_query(query):

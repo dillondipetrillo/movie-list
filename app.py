@@ -1,6 +1,7 @@
 from datetime import timedelta
 from dotenv import load_dotenv
-from flask import Flask, flash, get_flashed_messages, redirect, render_template, request, session, url_for
+from external_variables import FLASH_KEY
+from flask import Flask, flash, get_flashed_messages, jsonify, redirect, render_template, request, session, url_for
 from flask_mail import Mail, Message
 from flask_session import Session
 from helpers import create_form, create_tables, format_movie_info, get_cast_info, get_movie_info, is_logged_in, login_required, get_movie_release_info, save_movie, search_query, validate_form_data
@@ -15,9 +16,6 @@ app = Flask(__name__)
 
 # Creates necessary tables for database
 create_tables()
-
-# Global variable for setting flash message key
-FLASH_KEY = "flash_key" 
 
 app.config["SECRET_KEY"] = secrets.token_urlsafe(16)
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=30)
@@ -169,9 +167,10 @@ def search():
     return render_template("search.html", q=query)
 
 
-@app.route("/save-movie")
+@app.route("/save-movie", methods=["GET", "POST"])
 def save():
     """Endpoint to save movie to WatchList"""
-    movie_id = request.args.get("id")
-    if movie_id:
-        return save_movie(movie_id)
+    if request.method == "POST":
+        movie_id = request.args.get("id")
+        save_movie(movie_id)
+        return jsonify({"success": True, "redirect_url": url_for("movie", id=movie_id)})
