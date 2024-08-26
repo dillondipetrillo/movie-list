@@ -4,7 +4,7 @@ from external_variables import FLASH_KEY
 from flask import Flask, flash, get_flashed_messages, jsonify, redirect, render_template, request, session, url_for
 from flask_mail import Mail, Message
 from flask_session import Session
-from helpers import create_form, create_tables, format_movie_info, get_cast_info, get_movie_info, is_logged_in, login_required, get_movie_release_info, save_movie, search_query, validate_form_data
+from helpers import create_form, create_tables, format_movie_info, get_cast_info, get_movie_info, get_movie_release_info, get_saved_movies, is_logged_in, is_movie_saved, login_required, remove_movie, save_movie, search_query, validate_form_data
 from itsdangerous import SignatureExpired, URLSafeTimedSerializer
 import os, secrets
 
@@ -54,7 +54,11 @@ def check_session():
 def index():
     """Homepage for signed in user"""
     user = is_logged_in(session.get("user_id", None))
-    return render_template("index.html", user=user)
+    movies = None
+    if user:
+        movies = get_saved_movies(user.get("id"))
+    print(movies)
+    return render_template("index.html", user=user, movies=movies)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -149,7 +153,9 @@ def movie():
     release_info = get_movie_release_info(movie_id)
     cast_info = get_cast_info(movie_id)
     formatted_movie_info = format_movie_info(movie_info, release_info, cast_info)
-    return render_template("movie.html", movie=formatted_movie_info)
+    # Check if movie is saved to users list
+    is_saved = is_movie_saved(movie_id)
+    return render_template("movie.html", movie=formatted_movie_info, is_saved=is_saved)
 
 
 @app.route("/search-results")
@@ -173,4 +179,13 @@ def save():
     if request.method == "POST":
         movie_id = request.args.get("id")
         save_movie(movie_id)
+        return jsonify({"success": True, "redirect_url": url_for("movie", id=movie_id)})
+
+
+@app.route("/remove-movie", methods=["DELETE", "GET", "POST"])
+def remove():
+    """Endpoint to remove movie from list and delete from database"""
+    if request.method == "DELETE":
+        movie_id = request.args.get("id")
+        remove_movie(movie_id)
         return jsonify({"success": True, "redirect_url": url_for("movie", id=movie_id)})

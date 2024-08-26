@@ -22,7 +22,18 @@ if (movieBtn) {
         }
         // Remove movie from list
         else if (movieBtn.dataset.type === "remove") {
-
+            fetch(`/remove-movie?id=${movieId}`, {
+                method: "DELETE"
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    console.error("Error removing movie");
+                }
+            })
+            .catch(error => console.error("Error:", error));
         }
     })
 }

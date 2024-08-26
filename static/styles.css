@@ -93,7 +93,7 @@ a.search-result:hover {
 }
 
 .circle-wrap .circle .mask {
-  clip: rect(0px, 150px, 150px, 75px);
+  clip: rect(0px, 150px, 150px, 74px);
 }
 
 .circle-wrap .inside-circle {

@@ -58,13 +58,25 @@
                         </div>
                     </div>
                 </div>
-                <button type="button"
-                    class="btn btn-primary"
-                    id="movie-btn"
-                    data-type="save"
-                    data-id="{{ movie.id }}">
-                        Save to List
-                </button>
+                {% if session["user_id"] %}
+                    {% if not is_saved %}
+                        <button type="button"
+                            class="btn btn-primary"
+                            id="movie-btn"
+                            data-type="save"
+                            data-id="{{ movie.id }}">
+                                Save to List
+                        </button>
+                    {% else %}
+                        <button type="button"
+                            class="btn btn-danger"
+                            id="movie-btn"
+                            data-type="remove"
+                            data-id="{{ movie.id }}">
+                                Remove From List
+                        </button>
+                    {% endif %}
+                {% endif %}
             </div>
             {% if not movie.tagline == '' %}<p>{{ movie.tagline }}</p>{% endif %}
             <div class="overview">

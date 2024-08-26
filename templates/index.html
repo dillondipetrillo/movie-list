@@ -11,4 +11,38 @@
     {% elif not user.username %}
         <p>Please login to save movies here</p>
     {% endif %}
+
+    {% if movies %}
+        <div class="shadow bg-light rounded border">
+            {% for movie in movies %}
+                <a href="/movie?id={{ movie.id }}" class="search-result
+                    container-fluid
+                    p-2 d-flex border-bottom
+                    text-decoration-none link-dark
+                    {% if movies | length == 1 %}
+                        rounded
+                    {% endif %}
+                    {% if loop.index0 == 0 %}
+                        rounded-top
+                    {% endif %}
+                    {% if loop.index == movies | length %}
+                        rounded-bottom border-bottom
+                    {% endif %}
+                ">
+                    <div class="result-left me-2">
+                        <div class="result-img-wrapper">
+                            <img class="result-img" src="{% if not movie.poster_path %}/static/imgs/image-not-found-vector.jpg{% else %}https://image.tmdb.org/t/p/w92{{ movie.poster_path }}{% endif %}" />
+                        </div>
+                    </div>
+                    <div class="result-right py-1">
+                        <p class="result-title mb-0 fw-bold">{{ movie.original_title }}</p>
+                        <p class="result-year opacity-50 mb-0">{{ movie.release_date[:4] if movie.release_date else '' }}</p>
+                        <p class="search-bar-overview">{{ movie.overview }}</p>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% elif session["user_id"] %}
+        <p>No movies saved</p>
+    {% endif %}
 {% endblock %}

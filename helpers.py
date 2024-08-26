@@ -68,6 +68,21 @@ def is_logged_in(id):
     return user_dict
 
 
+def get_saved_movies(user_id):
+    """Returns a list of the saved movies for the user id"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT movie_id FROM user_movies WHERE user_id = ?", (user_id,))
+    movie_ids = cur.fetchall()
+    conn.close()
+
+    movie_list = []
+    for id in movie_ids:
+        movie_list.append(get_movie_info(id[0]))
+    return movie_list
+
+
 def create_form(form_type, form_title, form_button, form_action=None):
     """
         Creates a dictionary from the provided form info.
@@ -246,6 +261,26 @@ def handle_valid_submission(form_data, form_type):
     return True
 
 
+def is_movie_saved(movie_id):
+    """Checks if a movie is already saved to a users list"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        conn.close()
+        return False
+
+    cur.execute("SELECT * FROM user_movies WHERE user_id = ? AND movie_id = ?", (user_id, movie_id))
+    movie = cur.fetchone()
+    conn.close()
+    if movie:
+        return True
+    else:
+        return False
+
+
 def save_movie(movie_id):
     """Saves movie to users list"""
     conn = get_db_connection()
@@ -254,14 +289,12 @@ def save_movie(movie_id):
     # Get user id
     user_id = session.get("user_id")
     if not user_id:
+        conn.close()
         session[FLASH_KEY] = "danger"
         flash("Must be logged in to save movie.", session.get(FLASH_KEY))
         return
 
-    # Check if movie is already saved
-    cur.execute("SELECT * FROM user_movies WHERE user_id = ? AND movie_id = ?", (user_id, movie_id))
-    movie = cur.fetchone()
-    if movie:
+    if is_movie_saved(movie_id):
         session[FLASH_KEY] = "danger"
         flash("Movie already saved.", session.get(FLASH_KEY))
     else:
@@ -271,6 +304,33 @@ def save_movie(movie_id):
         session[FLASH_KEY] = "success"
         flash("Successfully saved movie!", session.get(FLASH_KEY))
 
+    conn.close()
+
+
+def remove_movie(movie_id):
+    """Removes movie from database"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    user_id = session.get("user_id")
+    if not user_id:
+        conn.close()
+        session[FLASH_KEY] = "danger"
+        flash("Must be logged in to remove movie.", session.get(FLASH_KEY))
+        return
+
+    cur.execute("DELETE FROM user_movies WHERE user_id = ? AND movie_id = ?", (user_id, movie_id))
+    conn.commit()
+    cur.execute("SELECT * FROM user_movies WHERE user_id = ? AND movie_id = ?", (user_id, movie_id))
+    movie = cur.fetchone()
+    if movie:
+        # Movie still exists, error removing movie
+        session[FLASH_KEY] = "danger"
+        flash("Error removing movie.", session.get(FLASH_KEY))
+    else:
+        # Movie no longer exists and was successfully deleted
+        session[FLASH_KEY] = "success"
+        flash("Movie successfully removed.", session.get(FLASH_KEY))
     conn.close()
 
 
@@ -368,6 +428,6 @@ def format_movie_info(movie_info, release_info, cast_info):
         "country": country if country else '',
         "tagline": movie_info.get("tagline", ''),
         "overview": movie_info.get("overview", ''),
-        "director": director.get("name", "Not listed"),
+        "director": director.get("name", "Not listed") if director else "Not listed",
         "cast_list": cast_info.get("cast"),
     }
