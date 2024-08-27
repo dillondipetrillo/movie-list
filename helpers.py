@@ -1,28 +1,23 @@
-from external_variables import DATABASE, EMAIL_PATTERN, ENTRY_FORM_FIELDS, FLASH_KEY, TMDB_API_KEY, PASSWORD_ERR, PASSWORD_PATTERN
-from flask import flash, get_flashed_messages, jsonify, redirect, session
-from functools import wraps
+from external_variables import EMAIL_PATTERN, ENTRY_FORM_FIELDS, FLASH_KEY, TMDB_API_KEY, PASSWORD_ERR, PASSWORD_PATTERN
+from flask import flash, get_flashed_messages, jsonify, session
 from werkzeug.security import check_password_hash, generate_password_hash
-import requests, sqlite3
+import os, psycopg2, requests
 
 def get_db_connection():
-    """
-        Establish connection for database.
-        Making the connection visible in multiple threads.
-    """
-    conn = sqlite3.connect(DATABASE)
+    """Establish connection for database."""
+    database_url = os.environ.get("DATABASE_URL")
+    conn = psycopg2.connect(database_url, sslmode="require")
     return conn
 
 
 def create_tables():
-    """
-        Creates a new database table for users, movies, and combined.
-    """
+    """Creates a new database table for users, movies, and combined."""
     conn = get_db_connection()
     cur = conn.cursor()
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            id SERIAL PRIMARY KEY,
             username TEXT NOT NULL UNIQUE,
             email TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL
@@ -31,25 +26,16 @@ def create_tables():
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS user_movies (
-            user_id INTEGER,
-            movie_id INTEGER,
+            user_id INTEGER NOT NULL,
+            movie_id INTEGER NOT NULL,
             PRIMARY KEY (user_id, movie_id),
-            FOREIGN KEY (user_id) REFERENCES users (id)
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         );
     """)
 
     conn.commit()
+    cur.close()
     conn.close()
-
-
-def login_required(f):
-    """Decorate routes to require login."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get("user_id") is None:
-            return redirect("/login")
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 def is_logged_in(id):
@@ -57,13 +43,14 @@ def is_logged_in(id):
     if not id: return
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, username, email FROM users WHERE id = ?", (id,))
+    cur.execute("SELECT id, username, email FROM users WHERE id = %s", (id,))
     user = cur.fetchone()
     user_dict = {
         "id": user[0],
         "username": user[1],
         "email": user[2],
     }
+    cur.close()
     conn.close()
     return user_dict
 
@@ -73,8 +60,9 @@ def get_saved_movies(user_id):
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT movie_id FROM user_movies WHERE user_id = ?", (user_id,))
+    cur.execute("SELECT movie_id FROM user_movies WHERE user_id = %s", (user_id,))
     movie_ids = cur.fetchall()
+    cur.close()
     conn.close()
 
     movie_list = []
@@ -149,56 +137,66 @@ def validate_form_field(form_data, form_field, type):
     # Username field
     if form_field == "username":
         if len(form_data.get(form_field)) < 2:
+            cur.close()
             conn.close()
             return "Username must be at least 2 characters"
-        cur.execute("SELECT * FROM users WHERE username = ?", (form_data.get(form_field),))
+        cur.execute("SELECT * FROM users WHERE username = %s", (form_data.get(form_field),))
         user = cur.fetchone()
         if user:
+            cur.close()
             conn.close()
             return "Username already exists"
 
     # Email field
     elif form_field == "email" and not type == "reset":
         if not form_data.get(form_field) or not EMAIL_PATTERN.match(form_data.get(form_field)):
+            cur.close()
             conn.close()
             return "Not a valid email"
         # If it's the signup form, check that email is not in use
-        cur.execute("SELECT * FROM users WHERE email = ?", (form_data.get(form_field),))
+        cur.execute("SELECT * FROM users WHERE email = %s", (form_data.get(form_field),))
         user = cur.fetchone()
         if type == "signup":
             if user:
+                cur.close()
                 conn.close()
                 return "Email already in use"
         elif not user:
+            cur.close()
             conn.close()
             return "Email not found"
 
     # Password field
     elif form_field == "password":
         if type == "login" and form_data.get("email"):
-            cur.execute("SELECT password_hash FROM users WHERE email = ?", (form_data.get("email"),))
+            cur.execute("SELECT password_hash FROM users WHERE email = %s", (form_data.get("email"),))
             user = cur.fetchone()
             if user and not check_password_hash(user[0], form_data.get(form_field)):
+                cur.close()
                 conn.close()
                 return "Incorrect password"
         elif not form_data.get(form_field) or not PASSWORD_PATTERN.match(form_data.get(form_field)):
+            cur.close()
             conn.close()
             return PASSWORD_ERR
         # For reset password page, make sure new password is not the same as the old one
         if type == "reset" and form_data.get("password") and form_data.get("email"):
-            cur.execute("SELECT password_hash FROM users WHERE email = ?", (form_data.get("email"),))
+            cur.execute("SELECT password_hash FROM users WHERE email = %s", (form_data.get("email"),))
             user_pw = cur.fetchone()
             if check_password_hash(user_pw[0], form_data.get("password")):
+                cur.close()
                 conn.close()
                 return "The new password cannot be the same as a previously used password"
 
     # Confirm password field
     elif form_field == "password-confirm" and form_data.get("password"):
         if not form_data.get(form_field) or not form_data.get(form_field) == form_data.get("password"):
+            cur.close()
             conn.close()
             return "Passwords must match"
 
     # Close database connection
+    cur.close()
     conn.close()
     return
 
@@ -218,8 +216,9 @@ def handle_valid_submission(form_data, form_type):
         # Forget any user session data
         session.clear()
         # Get user_id and username
-        cur.execute("SELECT id, username FROM users WHERE email = ?", (form_data.get("email"),))
+        cur.execute("SELECT id, username FROM users WHERE email = %s", (form_data.get("email"),))
         user = cur.fetchone()
+        cur.close()
         conn.close()
         session["user_id"] = user[0]
         session["username"] = user[1]
@@ -233,16 +232,18 @@ def handle_valid_submission(form_data, form_type):
         cur.execute("""
             INSERT INTO users
             (username, email, password_hash)
-            VALUES (?, ?, ?)
+            VALUES (%s, %s, %s)
         """, (form_data["username"], form_data.get("email"), pw_hash))
         # Get rows inserted
         if cur.rowcount < 1:
+            cur.close()
             conn.close()
             print("Error signing up user")
             return False
         conn.commit()
-        cur.execute("SELECT id, username FROM users WHERE email = ?", (form_data.get("email"),))
+        cur.execute("SELECT id, username FROM users WHERE email = %s", (form_data.get("email"),))
         user = cur.fetchone()
+        cur.close()
         conn.close()
         session["user_id"] = user[0]
         session["username"] = user[1]
@@ -253,10 +254,12 @@ def handle_valid_submission(form_data, form_type):
             form_data.get("password"),
             method="pbkdf2",
             salt_length=16)
-        cur.execute("UPDATE users SET password_hash = ? WHERE email = ?", (new_pw_hash, form_data.get("email")))
+        cur.execute("UPDATE users SET password_hash = %s WHERE email = %s", (new_pw_hash, form_data.get("email")))
         conn.commit()
+        cur.close()
         conn.close()
 
+    cur.close()
     conn.close()
     return True
 
@@ -269,16 +272,15 @@ def is_movie_saved(movie_id):
     user_id = session.get("user_id")
 
     if not user_id:
+        cur.close()
         conn.close()
         return False
 
-    cur.execute("SELECT * FROM user_movies WHERE user_id = ? AND movie_id = ?", (user_id, movie_id))
+    cur.execute("SELECT * FROM user_movies WHERE user_id = %s AND movie_id = %s", (user_id, movie_id))
     movie = cur.fetchone()
+    cur.close()
     conn.close()
-    if movie:
-        return True
-    else:
-        return False
+    return bool(movie)
 
 
 def save_movie(movie_id):
@@ -289,6 +291,7 @@ def save_movie(movie_id):
     # Get user id
     user_id = session.get("user_id")
     if not user_id:
+        cur.close()
         conn.close()
         session[FLASH_KEY] = "danger"
         flash("Must be logged in to save movie.", session.get(FLASH_KEY))
@@ -299,11 +302,12 @@ def save_movie(movie_id):
         flash("Movie already saved.", session.get(FLASH_KEY))
     else:
         # Insert movie into database
-        cur.execute("INSERT INTO user_movies (user_id, movie_id) VALUES (?, ?)", (user_id, movie_id))
+        cur.execute("INSERT INTO user_movies (user_id, movie_id) VALUES (%s, %s)", (user_id, movie_id))
         conn.commit()
         session[FLASH_KEY] = "success"
         flash("Successfully saved movie!", session.get(FLASH_KEY))
 
+    cur.close()
     conn.close()
 
 
@@ -314,15 +318,18 @@ def remove_movie(movie_id):
 
     user_id = session.get("user_id")
     if not user_id:
+        cur.close()
         conn.close()
         session[FLASH_KEY] = "danger"
         flash("Must be logged in to remove movie.", session.get(FLASH_KEY))
         return
 
-    cur.execute("DELETE FROM user_movies WHERE user_id = ? AND movie_id = ?", (user_id, movie_id))
+    cur.execute("DELETE FROM user_movies WHERE user_id = %s AND movie_id = %s", (user_id, movie_id))
     conn.commit()
-    cur.execute("SELECT * FROM user_movies WHERE user_id = ? AND movie_id = ?", (user_id, movie_id))
+    cur.execute("SELECT * FROM user_movies WHERE user_id = %s AND movie_id = %s", (user_id, movie_id))
     movie = cur.fetchone()
+    cur.close()
+    conn.close()
     if movie:
         # Movie still exists, error removing movie
         session[FLASH_KEY] = "danger"
@@ -331,7 +338,6 @@ def remove_movie(movie_id):
         # Movie no longer exists and was successfully deleted
         session[FLASH_KEY] = "success"
         flash("Movie successfully removed.", session.get(FLASH_KEY))
-    conn.close()
 
 
 def search_query(query):

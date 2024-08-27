@@ -13,9 +13,6 @@ PASSWORD_PATTERN = re.compile(
     r"^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$"
 )
 
-# Database name from environment variable
-DATABASE = os.getenv("DATABASE_NAME")
-
 # API key from environment variable
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 
