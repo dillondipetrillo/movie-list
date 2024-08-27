@@ -1,6 +1,5 @@
 from external_variables import DATABASE, EMAIL_PATTERN, ENTRY_FORM_FIELDS, FLASH_KEY, TMDB_API_KEY, PASSWORD_ERR, PASSWORD_PATTERN
-from flask import flash, get_flashed_messages, jsonify, redirect, session
-from functools import wraps
+from flask import flash, get_flashed_messages, jsonify, session
 from werkzeug.security import check_password_hash, generate_password_hash
 import requests, sqlite3
 
@@ -40,16 +39,6 @@ def create_tables():
 
     conn.commit()
     conn.close()
-
-
-def login_required(f):
-    """Decorate routes to require login."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get("user_id") is None:
-            return redirect("/login")
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 def is_logged_in(id):

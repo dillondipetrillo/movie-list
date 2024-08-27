@@ -4,7 +4,7 @@ from external_variables import FLASH_KEY
 from flask import Flask, flash, get_flashed_messages, jsonify, redirect, render_template, request, session, url_for
 from flask_mail import Mail, Message
 from flask_session import Session
-from helpers import create_form, create_tables, format_movie_info, get_cast_info, get_movie_info, get_movie_release_info, get_saved_movies, is_logged_in, is_movie_saved, login_required, remove_movie, save_movie, search_query, validate_form_data
+from helpers import create_form, create_tables, format_movie_info, get_cast_info, get_movie_info, get_movie_release_info, get_saved_movies, is_logged_in, is_movie_saved, remove_movie, save_movie, search_query, validate_form_data
 from itsdangerous import SignatureExpired, URLSafeTimedSerializer
 import os, secrets
 
